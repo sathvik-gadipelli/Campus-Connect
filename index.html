@@ -1,0 +1,2391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Connect</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    document.documentElement.classList.add('dark');
+    tailwind.config = { darkMode: 'class' }
+</script>
+
+<style>
+
+/* 🚫 HIDE SIDEBAR UNTIL APP ENTERS */
+#nav{
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* ===== COLLAPSIBLE DESKTOP SIDEBAR ===== */
+@media (min-width: 1025px) {
+  #nav {
+    width: 72px;
+    transition: width .35s ease;
+    overflow: hidden;
+  }
+
+  #nav.expanded {
+    width: 220px;
+  }
+
+  #nav.expanded .nav-label {
+    opacity: 1;
+  }
+
+  #nav .navBtn {
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+}
+
+  :root{
+  --bg:#0b0b0c;
+  --card:#161616;
+  --card-soft:#1e1e1e;
+  --text:#f5f5f5;
+  --muted:#9ca3af;
+  --accent:#ff7a18;
+  --accent-soft:#ff9a3c;
+  --success:#22c55e;
+  --danger:#ef4444;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+}
+
+    .btn{background:#1f2937;color:white;padding:12px;border-radius:8px;width:100%}
+    .catBtn{background:#111827;color:white;padding:12px;border-radius:8px;width:100%}
+    body { transition: background-color 0.3s, color 0.3s; }
+    /* Hide scrollbar */
+    ::-webkit-scrollbar { display: none; }
+
+.navBtn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  border-radius:14px;
+  transition:all .25s ease;
+  position:relative;
+}
+
+.navBtn:hover{
+  background:rgba(99,102,241,0.15);
+  transform:translateY(-2px);
+}
+
+.navBtn.active{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  box-shadow:0 8px 30px rgba(99,102,241,.45);
+}
+
+.dark .navBtn{
+  color:#e5e7eb;
+}
+
+.icon{
+  width:24px;
+  height:24px;
+  stroke-width:1.5;
+}
+
+/* OUTLINED → LIGHT MODE */
+html:not(.dark) .icon{
+  fill:none;
+}
+
+/* FILLED → DARK MODE */
+.dark .icon{
+  fill:currentColor;
+}
+
+#feed, #myPostsFeed {
+  overflow-y: auto;
+  max-height: calc(100vh - 160px); /* screen height minus nav + search + margin */
+}
+
+.navBtn.active {
+  background: rgba(99,102,241,0.15);
+  color: #6366f1;
+}
+
+/* 🔮 TRUE PREMIUM GLASS */
+.glass{
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* DARK MODE GLASS */
+.dark .glass{
+  background: rgba(20,20,20,0.65);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.card-hover {
+  transition: all .25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 40px rgba(0,0,0,.35);
+}
+
+.soft-shadow {
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+/* ========= APP SHELL ========= */
+.app-shell{
+  width:100%;
+  max-width:100%;
+}
+
+/* ===== DESKTOP = WEBSITE ===== */
+@media (min-width: 769px){
+  body{
+    background:#0b0b0c;
+  }
+
+  .app-shell{
+    max-width:1400px;
+    padding-bottom:0;
+  }
+
+  #nav{
+    position:sticky;
+    bottom:auto;
+    top:0;
+    max-width:100%;
+    transform:none;
+    border-radius:0;
+  }
+}
+
+/* Desktop → Floating Glass Sidebar */
+/* DESKTOP FLOATING SIDEBAR */
+/* Desktop Floating Sidebar */
+/* ===== DESKTOP SIDEBAR COLLAPSE/EXPAND ===== */
+
+  #nav {
+    position: fixed;
+    top: 100px;
+    left: 24px;
+    width: 60px; /* collapsed width */
+    flex-direction: column;
+    padding: 8px;
+    gap: 12px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    transition: width 0.35s ease;
+    z-index: 50;
+    cursor: pointer;
+  }
+
+  .dark #nav{
+  background: rgba(18,18,18,0.7);
+}
+  /* Hover → expand */
+  #nav:hover {
+    width: 220px; /* expanded width */
+  }
+
+  /* Only show first button (Menu) when collapsed */
+  #nav .navBtn:not(:first-child) {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Show all buttons on hover */
+  #nav:hover .navBtn:not(:first-child) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Label hidden when collapsed */
+  #nav .nav-label {
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Show labels on hover */
+  #nav:hover .nav-label {
+    opacity: 1;
+  }
+
+  /* Center icons when collapsed */
+  #nav .navBtn {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Align left when expanded */
+  #nav:hover .navBtn {
+    justify-content: flex-start;
+    padding-left: 14px;
+  }
+
+  /* Special styling for Menu button */
+  #nav .navBtn:first-child {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+
+
+
+button:active{
+  transform:scale(.96);
+}
+
+img{
+  -webkit-user-drag:none;
+  user-select:none;
+}
+
+#app > div{
+  animation:fadeSlide .35s ease;
+}
+
+@keyframes fadeSlide{
+  from{opacity:0; transform:translateY(12px)}
+  to{opacity:1; transform:none}
+}
+
+@media (min-width:1025px){
+  .navBtn.add-post{
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:white;
+  }
+}
+
+/* NAV ICON STACK */
+.nav-stack{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+}
+
+/* EXPANDED → keep icons centered, text flows right */
+#nav.expanded .navBtn{
+  justify-content:flex-start;
+  width:100%;
+}
+
+.navBtn.add-post::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 18px;
+  background: radial-gradient(circle, rgba(139,92,246,0.4), transparent 70%);
+  filter: blur(8px);
+  opacity: 0.7;
+  z-index: -1;
+  transition: all 0.3s ease;
+}
+
+.navBtn.add-post:hover::before {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
+.navBtn.add-post:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 20px 50px rgba(99,102,241,.8);
+}
+
+/* ================================
+   🔥 FORCE SIDEBAR FOR MOBILE ALSO
+================================ */
+
+/* MOBILE + TABLET SAME AS DESKTOP */
+
+#nav {
+  position: fixed;
+  top: 90px;
+  left: 16px;
+  width: 60px;              /* default collapsed */
+  padding: 8px;
+  gap: 12px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  transition: width 0.35s ease;
+}
+
+/* ================================
+   ✅ MOBILE OVERLAY SIDEBAR (FINAL)
+================================ */
+
+@media (max-width: 1024px){
+  #nav{
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 260px;
+    height: 100vh;
+
+    transform: translateX(-100%);
+    transition: transform .3s ease;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+
+    border-right: 1px solid rgba(255,255,255,0.12);
+
+    padding: 16px;
+    gap: 14px;
+    z-index: 100;
+  }
+
+  .dark #nav{
+    background: rgba(20,20,20,0.75);
+  }
+
+  #nav.open{
+    transform: translateX(0);
+  }
+
+  /* labels always visible */
+  #nav .nav-label{
+    opacity: 1;
+  }
+
+  /* buttons visible */
+  #nav .navBtn{
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  /* 🔥 NO SPACE RESERVED */
+  #app{
+    margin-left: 0 !important;
+  }
+}
+
+/* DARK OVERLAY */
+#sidebarOverlay{
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+}
+
+#sidebarOverlay.show{
+  display: block;
+}
+
+</style>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+  <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div id="appShell" class="app-shell mx-auto">
+
+<div id="splash"
+ class="fixed inset-0 z-50 flex flex-col items-center justify-center
+        bg-gradient-to-b from-black to-gray-900 text-white text-center px-6">
+
+  <div class="text-4xl font-extrabold tracking-wide">Campus Connect</div>
+  <p class="mt-3 text-gray-300 text-sm">
+    Earn. Learn. Connect.
+  </p>
+
+  <div class="absolute bottom-10 text-xs opacity-50">
+    Built for college students
+  </div>
+</div>
+
+<div id="login" class="hidden min-h-screen flex flex-col items-center justify-center gap-4 p-6">
+
+  <h1 class="text-2xl font-bold">Campus Connect</h1>
+
+  <!-- LOGIN FORM -->
+  <div id="loginForm" class="w-full max-w-sm space-y-3">
+    <input id="loginMobile" placeholder="Registered Mobile Number"
+      class="w-full p-3 rounded border dark:bg-gray-700">
+
+    <input id="loginPassword" type="password" placeholder="Password"
+      class="w-full p-3 rounded border dark:bg-gray-700">
+
+    <button onclick="loginUser()" class="btn">Login</button>
+
+    <p class="text-sm text-center opacity-70">
+      New user?
+      <button onclick="showSignup()" class="underline">Create account</button>
+    </p>
+  </div>
+
+  <!-- SIGNUP FORM -->
+  <div id="signupForm" class="hidden w-full max-w-sm space-y-3">
+    <input id="signupName" placeholder="Full Name"
+      class="w-full p-3 rounded border dark:bg-gray-700">
+
+    <input id="signupEmail" placeholder="Email"
+      class="w-full p-3 rounded border dark:bg-gray-700">
+
+    <input id="signupMobile" placeholder="Mobile Number"
+      class="w-full p-3 rounded border dark:bg-gray-700">
+
+    <input id="signupPassword" type="password" placeholder="Password"
+      class="w-full p-3 rounded border dark:bg-gray-700">
+
+    <button onclick="signupUser()" class="btn">Sign Up</button>
+
+    <p class="text-sm text-center opacity-70">
+      Already have account?
+      <button onclick="showLogin()" class="underline">Login</button>
+    </p>
+  </div>
+
+  <hr class="w-full max-w-sm opacity-40">
+
+  <button onclick="googleLogin()" class="bg-red-500 px-6 py-2 rounded text-white shadow-lg w-full max-w-sm">
+    Login with Google
+  </button>
+
+  <button onclick="guestLogin()" class="underline text-sm opacity-70">
+    Continue as Guest
+  </button>
+
+</div>
+
+<div class="sticky top-0 z-30 glass backdrop-blur-xl
+            p-3 shadow flex items-center gap-3">
+
+            <!-- ☰ MOBILE SIDEBAR TOGGLE -->
+<button
+  onclick="toggleSidebar()"
+  class="navBtn lg:hidden">
+  <i data-lucide="menu" class="icon"></i>
+</button>
+
+  <!-- LOGO -->
+  <div class="font-bold text-indigo-600 text-lg whitespace-nowrap">
+    CampusConnect
+  </div>
+
+  <!-- SEARCH -->
+  <input id="searchInput"
+    oninput="renderFeed()"
+    placeholder="Search items, notes, tutors..."
+    class="flex-1 p-2 rounded border dark:bg-gray-700
+           dark:text-white outline-none
+           focus:ring-2 focus:ring-indigo-500">
+
+  <!-- SAVED -->
+  <button onclick="showSaved()" class="navBtn">
+    ❤️
+  </button>
+
+  <!-- PROFILE -->
+  <button onclick="showScreen('profile')" class="navBtn">
+    <i data-lucide="user" class="icon"></i>
+    <span class="nav-label text-sm">profile</span>
+  </button>
+
+</div>
+
+
+<div id="app" class="hidden min-h-screen pb-24">
+  <div id="screen-saved" class="hidden p-4 space-y-4">
+  <h2 class="text-xl font-bold">❤️ Saved Items</h2>
+  <div id="savedFeed" class="space-y-3"></div>
+</div>
+
+<div id="screen-my-posts" class="hidden p-4 space-y-4">
+  <h2 class="text-xl font-bold">📦 My Posts</h2>
+  <div id="myPostsFeed" class="space-y-3"></div>
+</div>
+
+    <div id="screen-home" class="p-4 space-y-4">
+        <div id="homeAd" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-xl shadow-md">
+            🚀 Campus Connect – Buy • Sell • Notes • Tutors
+        </div>
+        <div id="feed" class="space-y-3"></div>
+    </div>
+<!-- 🔍 POST DETAILS SCREEN -->
+<div id="screen-post-details" class="hidden p-4 space-y-4">
+
+  <!-- Back -->
+  <button onclick="goBackFromDetails()" class="text-sm opacity-70">⬅ Back</button>
+
+  <!-- Content -->
+  <div id="postDetailsCard"
+ class="glass rounded-3xl p-5 soft-shadow">
+    <!-- JS will inject content here -->
+  </div>
+
+</div>
+
+    <div id="screen-categories" class="hidden p-4 space-y-3">
+        <h2 class="font-bold text-xl mb-4">Categories</h2>
+        <div class="grid grid-cols-2 gap-3">
+  <button onclick="filterCategory('Books')" class="flex items-center gap-2 p-3 bg-indigo-600 text-white rounded-xl shadow hover:scale-105 transition">
+    📚 Books
+  </button>
+  <button onclick="filterCategory('Notes')" class="flex items-center gap-2 p-3 bg-purple-600 text-white rounded-xl shadow hover:scale-105 transition">
+    📝 Notes
+  </button>
+  <button onclick="filterCategory('Gadgets')" class="flex items-center gap-2 p-3 bg-green-600 text-white rounded-xl shadow hover:scale-105 transition">
+    💻 Gadgets
+  </button>
+  <button onclick="filterCategory('Tutors')" class="flex items-center gap-2 p-3 bg-yellow-500 text-white rounded-xl shadow hover:scale-105 transition">
+    🧑‍🏫 Tutors
+  </button>
+</div>
+    </div>
+
+    <div id="screen-orders" class="hidden p-4 space-y-4">
+        <div class="flex items-center justify-between">
+  <h2 class="text-xl font-bold">📦 My Orders</h2>
+
+  <button
+    onclick="showScreen('seller-orders')"
+    class="text-sm font-semibold text-indigo-600 flex items-center gap-1"
+  >
+    📥 Orders Received
+  </button>
+</div>
+        <div id="ordersFeed" class="space-y-3 text-sm">
+            <p class="opacity-50 italic">No orders yet.</p>
+        </div>
+    </div>
+
+     <!-- SELLER ORDERS SCREEN -->
+<div id="screen-seller-orders" class="hidden p-4 space-y-4">
+  <h2 class="font-bold text-xl">📥 Orders Received</h2>
+  <div id="sellerOrdersFeed" class="space-y-3">
+    <p class="opacity-50">No orders yet.</p>
+  </div>
+</div>
+
+    <div id="screen-profile" class="hidden p-4 space-y-6">
+        <div id="userInfo" class="flex gap-3 items-center"></div>
+        
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+            <h3 class="font-bold border-b dark:border-gray-700 pb-2 mb-3">Order & Payment History</h3>
+            <div id="profileOrderHistory" class="space-y-3 max-h-60 overflow-y-auto">
+                <p class="text-xs opacity-50">Checking for past payments...</p>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <button onclick="showScreen('settings')" class="btn">⚙️ Settings</button>
+            <button onclick="logout()" class="bg-red-500 text-white p-2 rounded w-full font-bold">Logout</button>
+        </div>
+    </div>
+
+    <div id="screen-settings" class="hidden p-4 space-y-3">
+        <h2 class="font-bold">Theme Settings</h2>
+        <button onclick="setTheme('light')" class="btn">☀️ Light Mode</button>
+        <button onclick="setTheme('dark')" class="btn">🌙 Dark Mode</button>
+    </div>
+</div>
+
+<div id="postModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="bg-white dark:bg-gray-800 w-full max-w-md p-6 rounded-2xl shadow-xl space-y-4">
+        <h2 class="text-xl font-bold">Post New Item</h2>
+        <div class="space-y-3">
+            <input id="postTitle" type="text" placeholder="Item Name" class="w-full p-3 rounded-lg border dark:bg-gray-700">
+            <select id="postCategory" class="w-full p-3 rounded-lg border dark:bg-gray-700">
+                <option value="Books">📚 Books</option>
+                <option value="Notes">📝 Notes</option>
+                <option value="Gadgets">💻 Gadgets</option>
+                <option value="Tutors">🧑‍🏫 Tutors</option>
+            </select>
+            <input id="postPrice" type="number" placeholder="Price (₹)" class="w-full p-3 rounded-lg border dark:bg-gray-700">
+            <input id="postContact" type="tel" placeholder="WhatsApp Number" class="w-full p-3 rounded-lg border dark:bg-gray-700">
+            <textarea id="postDesc" placeholder="Description..." class="w-full p-3 rounded-lg border dark:bg-gray-700 h-20"></textarea>
+        <!-- 📸 IMAGE UPLOAD -->
+<label class="text-sm font-semibold">Upload Images (Min 2)</label>
+<input type="file" id="postImages" multiple accept="image/*"
+  class="w-full p-2 rounded border dark:bg-gray-700">
+
+<div id="imagePreview" class="grid grid-cols-3 gap-2 mt-2 rounded-xl overflow-hidden"></div>
+
+<progress id="uploadProgress" value="0" max="100"
+  class="w-full mt-2 hidden"></progress>
+
+          </div>
+        <div class="flex gap-2">
+            <button onclick="closePostModal()" class="flex-1 p-3 bg-gray-200 dark:bg-gray-700 rounded-lg">Cancel</button>
+            <button type="button" onclick="submitPost()"class="flex-1 p-3 bg-indigo-600 text-white rounded-lg font-bold">Publish</button>
+        </div>
+    </div>
+</div>
+
+<div id="nav"
+ class="hidden fixed bottom-0 left-0 right-0
+        flex items-center
+        px-4 p-3 z-40">
+
+        <!-- ☰ TOGGLE SIDEBAR -->
+<button onclick="toggleSidebar()" class="navBtn mb-2">
+  <i data-lucide="menu" class="icon"></i>
+  <span class="nav-label text-sm font-semibold">Menu</span>
+</button>
+
+<!-- 1️⃣ HOME -->
+<button onclick="goHome()" class="navBtn">
+  <i data-lucide="home" class="icon"></i>
+  <span class="nav-label text-sm">Home</span>
+</button>
+
+<!-- 2️⃣ CATEGORIES -->
+<button onclick="showScreen('categories')" class="navBtn col-span-1">
+  <i data-lucide="grid" class="icon"></i>
+  <span class="nav-label text-sm">categories</span>
+</button>
+
+<!-- 3️⃣ ADD POST -->
+<button onclick="addPost()" class="navBtn add-post">
+  <i data-lucide="plus-circle" class="icon"></i>
+  <span class="nav-label text-sm font-semibold">Add Post</span>
+</button>
+
+
+
+<!-- 4️⃣ MY POSTS -->
+<button onclick="showScreen('my-posts')" class="navBtn col-span-1">
+  <i data-lucide="file-text" class="icon"></i>
+  <span class="nav-label text-sm">my posts</span>
+</button>
+
+<!-- 5️⃣ MY ORDERS -->
+<button onclick="showScreen('orders')" class="navBtn col-span-1">
+  <i data-lucide="package" class="icon"></i>
+  <span class="nav-label text-sm">orders</span>
+</button>
+
+</div>
+
+<div id="screen-promo" class="hidden p-4 space-y-4">
+  <h2 class="text-xl font-bold text-orange-500">🔥 Promotions</h2>
+  <div id="promoFeed" class="space-y-3">
+    <div class="glass p-4 rounded-xl shadow text-center">
+      <p class="text-sm">
+        🎉 Complete your first order/payment to unlock Chat & Call features!
+      </p>
+      <button onclick="goHome()" class="mt-3 btn bg-indigo-600 text-white">Browse Products</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<script type="module">
+/* =========================
+   🔥 FIREBASE CORE SETUP
+========================= */
+
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  setDoc,
+  getDoc,
+  getDocs,
+  doc,
+  query,              // ✅ ADD THIS LINE
+  where,
+  orderBy,
+  onSnapshot,
+  deleteDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* =========================
+   🔥 FIREBASE INIT (MISSING FIX)
+========================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCLF7xarmzqJ_zShHGSyR3qyFI2z0ubYb8",
+    authDomain: "campus-connect-9084a.firebaseapp.com",
+    projectId: "campus-connect-9084a",
+    storageBucket: "campus-connect-9084a.appspot.com",
+    messagingSenderId: "710336541564",
+    appId: "1:710336541564:web:698e25b314a4396a2e6af9"
+  };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const provider = new GoogleAuthProvider();
+
+window.savedIds = new Set();
+window.currentUser = getUser();
+window.postCache = new Map(); // 🔥 SINGLE SOURCE FOR POSTS
+
+// 🔥 TRACK CURRENT SCREEN
+window.currentView = "home";
+
+/* =========================
+   ❤️ SAVE SYSTEM (FINAL – SINGLE SOURCE)
+========================= */
+
+window.toggleSave = async (postId) => {
+  const u = window.currentUser;
+  if (!u || u.role === "guest") {
+    alert("Login required to save");
+    return;
+  }
+
+  const ref = doc(db, "users", u.uid, "saved", postId);
+
+  // 🔥 OPTIMISTIC UI UPDATE
+  if (window.savedIds.has(postId)) {
+    window.savedIds.delete(postId);
+    renderFeed();
+    if (window.currentView === "saved") renderSaved();
+    if (window.currentView === "post-details") openPostDetails(postId);
+
+    // Firestore delete (background)
+    try {
+      await deleteDoc(ref);
+    } catch (e) {
+      console.error(e);
+    }
+
+  } else {
+    window.savedIds.add(postId);
+    renderFeed();
+    if (window.currentView === "saved") renderSaved();
+    if (window.currentView === "post-details") openPostDetails(postId);
+
+    // Firestore save (background)
+    try {
+      await setDoc(ref, {
+        postId,
+        savedAt: serverTimestamp()
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+};
+
+/* =========================
+   👂 REALTIME LISTENER (SOURCE OF TRUTH)
+========================= */
+window.listenToSaved = (uid) => {
+  if (!uid) return;
+
+  const ref = collection(db, "users", uid, "saved");
+
+  onSnapshot(ref, snap => {
+    window.savedIds.clear();
+    snap.forEach(d => window.savedIds.add(d.id));
+
+    renderFeed();
+    if (window.currentView === "saved") renderSaved();
+
+    if (window.currentView === "post-details") {
+      const box = document.getElementById("postDetailsCard");
+      if (box?.dataset.id) openPostDetails(box.dataset.id);
+    }
+  });
+};
+
+/* =========================
+   📦 SAVED SCREEN
+========================= */
+  window.renderSaved = async () => {
+  const feed = document.getElementById("savedFeed");
+  feed.innerHTML = "";
+
+  if (window.savedIds.size === 0) {
+    feed.innerHTML = "<p class='opacity-50'>No saved items</p>";
+    return;
+  }
+
+  for (const id of window.savedIds) {
+    let post = window.postCache.get(id);
+
+    if (!post) {
+      const snap = await getDoc(doc(db, "posts", id));
+      if (!snap.exists()) continue;
+      post = { id, ...snap.data() };
+      window.postCache.set(id, post);
+    }
+
+    let imgHtml = "";
+if (post.images && post.images.length) {
+  imgHtml = `
+    <div class="mt-2 h-32 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded">
+      <img src="${post.images[0]}"
+        class="max-h-full max-w-full object-contain">
+    </div>
+  `;
+}
+
+feed.innerHTML += `
+<div onclick="openPostDetails('${post.id}')"
+  class="bg-white dark:bg-gray-800 rounded-2xl border p-4 cursor-pointer hover:shadow-lg transition">
+  <h3 class="font-bold text-lg truncate">${post.title}</h3>
+  <p class="text-indigo-600 font-bold text-md">₹${post.price}</p>
+  <p class="text-xs opacity-60">${post.category}</p>
+  <p class="text-sm opacity-70 line-clamp-2">${post.description || ""}</p>
+  ${imgHtml}
+</div>
+`;
+  }
+}
+
+/* =========================
+   🔐 AUTH & USER FLOW
+========================= */
+
+function saveUser(user) {
+  localStorage.setItem("cc_user", JSON.stringify(user));
+  window.currentUser = user;   // 🔥 ADD THIS
+}
+
+function getUser() {
+  const u = localStorage.getItem("cc_user");
+  return u ? JSON.parse(u) : null;
+}
+
+/* =========================
+   🔐 GOOGLE LOGIN
+========================= */
+/* =========================
+   🔐 GOOGLE LOGIN (FIXED)
+   - No role overwrite
+   - Firestore sync safe
+   - Admin preserved
+========================= */
+window.googleLogin = async () => {
+  try {
+    // 1️⃣ Firebase Google Auth
+    const res = await signInWithPopup(auth, provider);
+    const user = res.user;
+
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+
+    // 2️⃣ If user document DOES NOT exist → first time Google signup
+    if (!snap.exists()) {
+      await setDoc(userRef, {
+        name: user.displayName || "User",
+        email: user.email,
+        mobile: "",
+        role: "user",               // ✅ default role ONLY on first signup
+        createdAt: serverTimestamp()
+      });
+    }
+
+    // 3️⃣ Re-fetch user data (IMPORTANT)
+    const finalSnap = await getDoc(userRef);
+    const userData = finalSnap.data();
+
+    // 4️⃣ Save to localStorage + memory (NO ROLE OVERRIDE)
+    localStorage.setItem(
+      "cc_user",
+      JSON.stringify({
+        uid: user.uid,
+        ...userData,
+        photo: user.photoURL || ""
+      })
+    );
+
+    window.currentUser = {
+      uid: user.uid,
+      ...userData,
+      photo: user.photoURL || ""
+    };
+
+    // 5️⃣ Enter app
+    enterApp();
+
+  } catch (err) {
+    console.error("Google Login Error:", err);
+    alert(err.message);
+  }
+};
+
+
+/* =========================
+   📝 SIGNUP (Simple DB)
+========================= */
+window.signupUser = async () => {
+  const name = signupName.value.trim();
+  const email = signupEmail.value.trim();
+  const mobile = signupMobile.value.trim();
+  const password = signupPassword.value.trim();
+
+  if (!name || !email || !mobile || !password) {
+    alert("All fields are required");
+    return;
+  }
+
+  if (mobile.length !== 10) {
+    alert("Enter valid 10-digit mobile number");
+    return;
+  }
+
+  try {
+    /* 🔒 1️⃣ CHECK MOBILE ALREADY EXISTS */
+    const mobileQuery = query(
+      collection(db, "users"),
+      where("mobile", "==", mobile)
+    );
+
+    const mobileSnap = await getDocs(mobileQuery);
+
+    if (!mobileSnap.empty) {
+      alert("Mobile number already registered");
+      return;
+    }
+
+    /* 🔐 2️⃣ CREATE FIREBASE AUTH USER */
+    const cred = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const uid = cred.user.uid;
+
+    /* 🧾 3️⃣ SAVE USER IN FIRESTORE */
+    const userData = {
+      name: name,
+      email: email,
+      mobile: mobile,
+      role: "user",
+      createdAt: serverTimestamp()
+    };
+
+    await setDoc(doc(db, "users", uid), userData);
+
+    const finalUser = { uid, ...userData };
+    if (finalUser.blocked) {
+  alert("Your account is blocked");
+  await signOut(auth);
+  return;
+}
+
+
+localStorage.setItem("cc_user", JSON.stringify(finalUser));
+window.currentUser = finalUser;
+
+enterApp();
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "auth/email-already-in-use") {
+      alert("Email already registered");
+    } else if (error.code === "auth/weak-password") {
+      alert("Password should be at least 6 characters");
+    } else {
+      alert("Signup failed. Try again");
+    }
+  }
+};
+
+//login user
+window.loginUser = async () => {
+  const mobile = loginMobile.value.trim();
+  const password = loginPassword.value.trim();
+
+  if (!mobile || !password) {
+    alert("Enter mobile & password");
+    return;
+  }
+
+  try {
+    // 1️⃣ Find user by mobile
+    const q = query(
+      collection(db, "users"),
+      where("mobile", "==", mobile)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      alert("No account found with this mobile number");
+      return;
+    }
+
+    // 2️⃣ Get email from user doc
+    const userDoc = snap.docs[0];
+    const { email } = userDoc.data();
+
+    // 3️⃣ Firebase login using email
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+
+    // 4️⃣ Save user
+    const finalUser = {
+  uid: cred.user.uid,
+  ...userDoc.data()
+};
+
+localStorage.setItem("cc_user", JSON.stringify(finalUser));
+window.currentUser = finalUser;   // 🔥 THIS LINE WAS MISSING
+
+enterApp();
+
+
+  } catch (e) {
+    alert("Invalid credentials");
+    console.error(e);
+  }
+};
+
+/* =========================
+   🚪 LOGOUT
+========================= */
+window.logout = async () => {
+  try { await signOut(auth); } catch(e){}
+
+  localStorage.removeItem("cc_user");
+  location.reload();
+};
+
+/* =========================
+   🚀 ENTER APP (SINGLE ENTRY)
+========================= */
+window.enterApp = () => {
+  const loginEl = document.getElementById("login");
+  const appEl   = document.getElementById("app");
+  const navEl = document.getElementById("nav");
+if (navEl) {
+  navEl.classList.remove("hidden");
+  navEl.style.visibility = "visible";
+  navEl.style.opacity = "1";
+}
+
+  if (loginEl) loginEl.classList.add("hidden");
+  if (appEl)   appEl.classList.remove("hidden");
+
+  const u = getUser();
+  if (!u) return;
+
+  window.currentUser = u;
+  loadUser();
+
+  listenToFeed();
+
+ if (u.role !== "guest") {
+  listenToSaved(u.uid);
+  listenToMyPosts();
+
+  listenToHomeAd();
+}
+
+  showScreen("home");
+};
+
+
+/* =========================
+   🔁 AUTO LOGIN (GOOGLE)
+========================= */
+onAuthStateChanged(auth, async (u) => {
+  if(!u) return;
+
+  const snap = await getDoc(doc(db,"users",u.uid));
+  if(!snap.exists()) return;
+
+  saveUser({ uid:u.uid, ...snap.data() });
+  enterApp();
+});
+
+// 🔥 EXPOSE FIREBASE TO GLOBAL
+// 🔥 EXPOSE FIREBASE TO GLOBAL (ORDER FIX)
+window.db = db;
+window.doc = doc;          // ✅ REQUIRED
+window.getDoc = getDoc;    // ✅ REQUIRED
+window.query = query;
+window.collection = collection;
+window.where = where;
+window.orderBy = orderBy;
+window.onSnapshot = onSnapshot;
+window.addDoc = addDoc;
+window.setDoc = setDoc;
+window.deleteDoc = deleteDoc;
+window.serverTimestamp = serverTimestamp;
+
+/* =========================
+   📢 HOME AD – REAL TIME (FIXED)
+========================= */
+
+function listenToHomeAd(){
+  const ref = doc(db, "config", "homeAd");
+
+  onSnapshot(ref, snap => {
+    if(snap.exists()){
+      const el = document.getElementById("homeAd");
+      if(el) el.innerText = snap.data().text;
+    }
+  });
+}
+
+// expose to window
+window.listenToHomeAd = listenToHomeAd;
+
+</script>
+
+<script>
+/* =========================
+   🚀 SPLASH CONTROLLER
+========================= */
+
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const splash = document.getElementById("splash");
+if(splash) splash.classList.add("hidden");
+
+
+    const user = localStorage.getItem("cc_user");
+
+    if (user) {
+      window.currentUser = JSON.parse(user);
+      enterApp();
+    }
+    else {
+      document.getElementById("login").classList.remove("hidden");
+      document.getElementById("app").classList.add("hidden");
+      document.getElementById("nav").classList.add("hidden");
+    }
+  }, 1200);
+});
+</script>
+
+<script>
+function showScreen(n){
+  window.currentView = n;
+
+  const screens = [
+    "home","categories","post-details",
+    "my-posts","orders","saved","seller-orders",
+    "profile","settings"
+];
+
+  screens.forEach(s=>{
+    const el = document.getElementById("screen-"+s);
+    if(el) el.classList.add("hidden");
+  });
+
+  const target = document.getElementById("screen-"+n);
+  if(target) target.classList.remove("hidden");
+
+    if(n === "orders") listenToMyOrders();
+  if(n === "seller-orders") listenToSellerOrders();
+
+    
+}
+
+window.showSaved = () => {
+  window.currentView = "saved";
+  showScreen("saved");
+  renderSaved();
+};
+
+</script>
+
+<script>
+  window.renderFeed = function () {
+  const feed = document.getElementById("feed");
+feed.className = `
+  grid gap-4
+  grid-cols-1
+  sm:grid-cols-2
+  lg:grid-cols-3
+`;
+  const searchBox = document.getElementById("searchInput");
+  const q = searchBox ? searchBox.value.trim().toLowerCase() : "";
+
+  feed.innerHTML = "";
+
+  if (!window.items || window.items.length === 0) {
+    feed.innerHTML = "<p class='opacity-50 text-center mt-10'>No items yet</p>";
+    return;
+  }
+
+  const visible = window.items.filter(p => {
+    if (p.blocked) return false;
+    if (p.status && p.status !== "active") return false;
+    if (!p.title) return false;
+    if (q && !p.title.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (visible.length === 0) {
+    feed.innerHTML = "<p class='opacity-50 text-center'>No results found</p>";
+    return;
+  }
+
+  visible.forEach(p => {
+    const saved = window.savedIds.has(p.id);
+
+const thumb = (p.images && p.images.length)
+  ? p.images[0]
+  : "https://via.placeholder.com/300x200?text=No+Image";
+
+feed.innerHTML += `
+<div onclick="openPostDetails('${p.id}')"
+  class="glass card-hover rounded-3xl overflow-hidden">
+
+  <div class="relative h-44 bg-black flex items-center justify-center">
+    <img src="${thumb}"
+      class="max-h-full object-contain p-3">
+
+    <span class="absolute top-2 left-2
+      text-xs bg-black/70 px-2 py-1 rounded text-white">
+      ${p.category}
+    </span>
+
+    <button onclick="event.stopPropagation(); toggleSave('${p.id}')"
+      class="absolute top-2 right-2 text-lg">
+      ${saved ? "❤️" : "🤍"}
+    </button>
+  </div>
+
+  <div class="p-4 space-y-1">
+    <h3 class="font-bold truncate">${p.title}</h3>
+    <p class="text-orange-400 font-bold">₹${p.price}</p>
+    <p class="text-xs opacity-60 line-clamp-2">${p.description || ""}</p>
+  </div>
+</div>
+`;
+  });
+}
+window.openPostDetails = async (postId) => {
+  let post = window.postCache.get(postId);
+
+  // 🔥 FALLBACK FETCH (FOR SAVED / DIRECT ACCESS)
+  if (!post) {
+    const snap = await getDoc(doc(db, "posts", postId));
+    if (!snap.exists()) return;
+    post = { id: snap.id, ...snap.data() };
+    window.postCache.set(postId, post);
+  }
+
+  const saved = window.savedIds.has(postId);
+  const box = document.getElementById("postDetailsCard");
+
+  box.dataset.id = postId;
+  let imagesHtml = "";
+if (post.images && post.images.length) {
+  imagesHtml = `
+    <div class="relative overflow-x-auto flex gap-3 snap-x snap-mandatory scrollbar-hide mt-2">
+      ${post.images.map(img => `
+        <div class="min-w-full snap-center flex justify-center">
+          <img src="${img}"
+            onclick="openImageViewer('${img}')"
+            class="h-64 max-w-full object-contain rounded-xl cursor-pointer">
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+box.innerHTML = `
+  <h2 class="text-2xl font-bold">${post.title}</h2>
+  <p class="text-sm opacity-80">${post.description || ""}</p>
+  ${imagesHtml}
+  <hr class="opacity-30 my-2">
+  <p class="text-indigo-600 font-bold text-xl">₹${post.price}</p>
+  <span class="inline-block text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700">
+    Status: ${post.status || "active"}
+  </span>
+  <p class="text-xs opacity-60">Category: ${post.category}</p>
+
+  <hr class="opacity-30 my-2">
+
+  <div class="text-sm space-y-1">
+  <p class="font-bold">Seller Details</p>
+  <p>Name: ${post.ownerName || "User"}</p>
+</div>
+
+<div class="flex gap-2 mt-4">
+  <button onclick="handleChat('${postId}')"
+    class="flex-1 p-3 rounded-xl bg-indigo-600 text-white font-bold">
+    💬 Chat
+  </button>
+
+  <button onclick="handleCall('${postId}')"
+    class="flex-1 p-3 rounded-xl bg-green-600 text-white font-bold">
+    📞 Call
+  </button>
+</div>
+
+  <div class="flex gap-2 pt-2">
+    <button onclick="toggleSave('${postId}')"
+      class="flex-1 p-3 rounded-lg border ${saved ? 'bg-red-500 text-white' : 'bg-white dark:bg-gray-700'}">
+      ❤️ ${saved ? "Saved" : "Save"}
+    </button>
+    <button onclick="placeOrder('${postId}')"
+ class="w-full mt-4 p-4 rounded-xl
+        bg-orange-500 text-black
+        font-extrabold text-lg">
+  Pay & Connect →
+</button>
+
+<p class="text-xs text-center opacity-50 mt-2">
+  Fast UPI • Wallet • Secure
+</p>
+  </div>
+`;
+
+// After injecting HTML
+const chatBtn = document.getElementById("chatBtn");
+const callBtn = document.getElementById("callBtn");
+
+if (chatBtn) {
+  chatBtn.onclick = () => handleChat(postId);
+}
+
+if (callBtn) {
+  callBtn.onclick = () => handleCall(postId);
+}
+  showScreen("post-details");
+  window.currentView = "post-details";
+};
+
+window.goBackFromDetails = () => {
+  const box = document.getElementById("postDetailsCard");
+  if(box) box.innerHTML = "";
+
+  showScreen("home");
+};
+
+async function placeOrder(postId) {
+  const u = window.currentUser;
+  if (!u || u.role === "guest") {
+    showToast("Login required");
+    return;
+  }
+
+  const post = window.postCache.get(postId);
+  if (!post) {
+    showToast("Post not found");
+    return;
+  }
+
+  try {
+    // 🔥 BLOCK ONLY ACTIVE ORDERS
+    const q = query(
+      collection(db, "orders"),
+      where("postId", "==", postId),
+      where("buyerId", "==", u.uid),
+      where("status", "in", ["placed", "accepted"])
+    );
+
+    const snap = await getDocs(q);
+
+    if (!snap.empty) {
+      showToast("You already have an active order for this post");
+      return;
+    }
+
+    // ✅ ALLOW IF PREVIOUS WAS rejected / completed
+    await addDoc(collection(db, "orders"), {
+      postId,
+      postTitle: post.title,
+      price: post.price,
+
+      buyerId: u.uid,
+      buyerName: u.name || "User",
+
+      sellerId: post.ownerId,
+      sellerName: post.ownerName || "User",
+
+      status: "placed", // placed → accepted → completed / rejected
+      paymentStatus: "pending",
+
+      createdAt: serverTimestamp()
+    });
+
+    // 🔒 TEMPORARILY LOCK POST
+await setDoc(
+  doc(db, "posts", postId),
+  { status: "pending" },
+  { merge: true }
+);
+
+    showToast("Order placed successfully ✅");
+    showScreen("orders");
+
+  } catch (e) {
+    console.error(e);
+    showToast("Order failed");
+  }
+}
+
+</script>
+
+<script>
+function listenToFeed(){
+  const ref = collection(db, "posts");
+
+  onSnapshot(ref, snap => {
+    window.items = [];
+    window.postCache.clear(); // 🔥 IMPORTANT
+
+    snap.forEach(d => {
+      const data = d.data();
+      const post = { id: d.id, ...data };
+
+      // 🔥 ALWAYS cache FULL post
+      window.postCache.set(d.id, post);
+
+      // Home shows only active
+      if (data.status === "active") {
+        window.items.push(post);
+      }
+    });
+
+    renderFeed();
+  });
+}
+
+
+</script>
+
+<script>
+async function submitPost(){
+  const u = window.currentUser;
+  if(!u || u.role==="guest"){
+    showToast("Login required");
+    return;
+  }
+
+  const title = postTitle.value.trim();
+  const category = postCategory.value;
+  const price = Number(postPrice.value);
+  const contact = postContact.value.trim();
+  const description = postDesc.value.trim();
+
+  if(!title || !price || !contact){
+    showToast("Fill required fields");
+    return;
+  }
+
+  const imageFiles = selectedImages;
+
+  if (!imageFiles || imageFiles.length < IMAGE_RULES.MIN) {
+  showToast(`Minimum ${IMAGE_RULES.MIN} images required`);
+  return;
+}
+
+if (imageFiles.length > IMAGE_RULES.MAX) {
+  showToast(`Maximum ${IMAGE_RULES.MAX} images allowed`);
+  return;
+}
+
+  try {
+    showToast("Uploading images…");
+
+    const imageUrls = await uploadPostImages(imageFiles);
+
+    await addDoc(collection(db, "posts"), {
+      title,
+      category,
+      price,
+      contact,
+      description,
+
+      images: imageUrls,
+      ownerId: u.uid,
+      ownerName: u.name || "User",
+      ownerEmail: u.email || "",
+
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    showToast("Post submitted for admin approval ✅");
+    closePostModal();
+
+  } catch (err) {
+    console.error("POST FAILED:", err);
+    showToast("Image upload failed ❌ Check console");
+  }
+}
+
+function closePostModal(){
+  const m = document.getElementById("postModal");
+  if(m) m.classList.add("hidden");
+
+  postTitle.value = "";
+  postCategory.value = "Books";
+  postPrice.value = "";
+  postContact.value = "";
+  postDesc.value = "";
+  imagePreview.innerHTML = "";
+  document.getElementById("postImages").value = "";
+  selectedImages = [];
+}
+
+
+//NEXT CODE FUNCTION 😅😁
+// 🔒 IMAGE RULES (DO NOT REMOVE)
+const IMAGE_RULES = {
+  MIN: 2,
+  MAX: 5
+};
+let selectedImages = []; // 🔥 GLOBAL IMAGE BUFFER
+const postImagesInput = document.getElementById("postImages");
+const imagePreview = document.getElementById("imagePreview");
+
+if (postImagesInput) {
+  postImagesInput.addEventListener("change", () => {
+    const newFiles = [...postImagesInput.files];
+
+    // 🔥 ADD new images instead of replacing
+    newFiles.forEach(file => {
+      // avoid duplicates
+      if (!selectedImages.some(f => f.name === file.name && f.size === file.size)) {
+        selectedImages.push(file);
+      }
+    });
+
+    renderImagePreview();
+    postImagesInput.value = ""; // 🔥 VERY IMPORTANT
+  });
+}
+
+function renderImagePreview() {
+  imagePreview.innerHTML = "";
+
+  selectedImages.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wrap = document.createElement("div");
+      wrap.className = "relative";
+
+      wrap.innerHTML = `
+        <img src="${e.target.result}"
+          class="h-24 w-full object-cover rounded shadow">
+        <button
+          onclick="removeImage(${index})"
+          class="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+          ✕
+        </button>
+      `;
+
+      imagePreview.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+window.removeImage = (i) => {
+  selectedImages.splice(i, 1);
+  renderImagePreview();
+};
+
+// ANOTHER FUNCTION
+
+// 🔥 CLOUDINARY SETUP
+const CLOUD_NAME = "di4xyjo7n";        // replace with your Cloudinary cloud name
+const UPLOAD_PRESET = "rth_products";  // replace with your unsigned preset
+
+async function uploadPostImages(files) {
+  if (!files || files.length < 2) {
+    showToast("Minimum 2 images required ❗");
+    throw new Error("Not enough images");
+  }
+
+  const bar = document.getElementById("uploadProgress");
+  if (bar) {
+    bar.value = 0;
+    bar.classList.remove("hidden");
+  }
+
+  const urls = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) {
+      throw new Error("Cloudinary upload failed");
+    }
+
+    const data = await res.json();
+    urls.push(data.secure_url);
+
+    if (bar) bar.value = ((i + 1) / files.length) * 100;
+  }
+
+  if (bar) bar.classList.add("hidden");
+  return urls;
+}
+
+</script>
+
+<script>
+function listenToMyPosts(){
+  const u = window.currentUser;
+  if(!u) return;
+
+  const q = query(
+  collection(db, "posts"),
+  where("ownerId", "==", u.uid)
+);
+
+  onSnapshot(q, snap => {
+    const feed = document.getElementById("myPostsFeed");
+if(!feed) return;
+feed.innerHTML = "";
+
+
+    if(snap.empty){
+      feed.innerHTML = "<p class='opacity-50'>No posts yet</p>";
+      return;
+    }
+
+    snap.forEach(d=>{
+  const p = d.data();
+ feed.innerHTML += `
+ <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border space-y-2">
+  <div>
+    <h3 class="font-bold">${p.title}</h3>
+    <p class="text-indigo-600 font-bold">₹${p.price}</p>
+    <p class="text-xs opacity-60">${p.category}</p>
+    <p class="text-xs font-bold mt-1 ${
+      p.status === 'pending' ? 'text-yellow-500' :
+      p.status === 'sold' ? 'text-gray-400' :
+      'text-green-500'
+    }">
+      ${p.status.toUpperCase()}
+    </p>
+  </div>
+
+  <div class="flex gap-2 pt-2">
+    ${
+      p.status !== "sold" ? `
+      <button onclick="markSold('${d.id}')"
+        class="flex-1 text-sm bg-green-600 text-white p-2 rounded">
+        Mark Sold
+      </button>` : ""
+    }
+
+    <button onclick="deletePost('${d.id}')"
+      class="flex-1 text-sm bg-red-500 text-white p-2 rounded">
+      Delete
+    </button>
+  </div>
+</div>`;
+
+});
+
+  });
+}
+
+let myOrdersUnsub = null;
+
+function listenToMyOrders() {
+  const u = window.currentUser;
+  if (!u || !u.uid) return;
+
+  if (myOrdersUnsub) myOrdersUnsub();
+
+  const q = query(
+    collection(db, "orders"),
+    where("buyerId", "==", u.uid)
+  );
+
+  myOrdersUnsub = onSnapshot(q, snap => {
+    console.log("My Orders snapshot:", snap.docs.length);
+    const feed = document.getElementById("ordersFeed");
+    if (!feed) return;
+
+    feed.innerHTML = "";
+
+    if (snap.empty) {
+      feed.innerHTML = "<p class='opacity-50 italic'>No orders yet</p>";
+      return;
+    }
+
+    const orders = [];
+    snap.forEach(d => orders.push({ id: d.id, ...d.data() }));
+
+    // 🔥 client-side sort (safe)
+   orders.sort((a, b) => {
+  const t1 = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0;
+  const t2 = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0;
+  return t2 - t1;
+});
+
+
+
+    orders.forEach(o => {
+      feed.innerHTML += `
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border">
+          <h3 class="font-bold">${o.postTitle}</h3>
+          <p class="text-indigo-600 font-bold">₹${o.price}</p>
+          <p class="text-xs font-semibold ${
+  o.status === "placed" ? "text-yellow-500" :
+  o.status === "accepted" ? "text-blue-500" :
+  o.status === "completed" ? "text-green-500" :
+  "text-red-500"
+}">
+Status: ${o.status}
+</p>
+          <p class="text-xs opacity-50">Seller: ${o.sellerName || "User"}</p>
+        </div>
+      `;
+    });
+  });
+}
+
+let sellerOrdersUnsub = null;
+
+function listenToSellerOrders() {
+  const u = window.currentUser;
+  if (!u || !u.uid) return;
+
+  if (sellerOrdersUnsub) sellerOrdersUnsub();
+
+  const q = query(
+    collection(db, "orders"),
+    where("sellerId", "==", u.uid)
+  );
+
+  sellerOrdersUnsub = onSnapshot(q, snap => {
+    const feed = document.getElementById("sellerOrdersFeed");
+    if (!feed) return;
+
+    feed.innerHTML = "";
+
+    if (snap.empty) {
+      feed.innerHTML = "<p class='opacity-50'>No orders received</p>";
+      return;
+    }
+
+    const orders = [];
+    snap.forEach(d => orders.push({ id: d.id, ...d.data() }));
+
+    orders.sort((a, b) => {
+  const t1 = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0;
+  const t2 = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0;
+  return t2 - t1;
+});
+
+
+orders.forEach(o => {
+  feed.innerHTML += `
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border space-y-2">
+      <h3 class="font-bold">${o.postTitle}</h3>
+      <p class="text-indigo-600 font-bold">₹${o.price}</p>
+      <p class="text-xs">Buyer: ${o.buyerName}</p>
+      <p class="text-xs font-semibold">Status: ${o.status}</p>
+
+      ${
+        o.status === "placed"
+          ? `<div class="flex gap-2 pt-2">
+              <button onclick="sellerUpdateOrder('${o.id}','accepted')"
+                class="flex-1 bg-green-600 text-white p-2 rounded text-sm">
+                Accept
+              </button>
+              <button onclick="sellerUpdateOrder('${o.id}','rejected')"
+                class="flex-1 bg-red-500 text-white p-2 rounded text-sm">
+                Reject
+              </button>
+            </div>`
+          : ""
+      }
+    </div>
+  `;
+});
+
+  });
+}
+
+</script>
+
+
+<script>
+ 
+   function loadUser(){
+  const u = JSON.parse(localStorage.getItem("cc_user"));
+  if(!u) return;
+
+  const photo = u.photo || 
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "User")}`;
+
+  userInfo.innerHTML = `
+    <img src="${photo}" class="w-14 h-14 rounded-full border-2 border-indigo-500 shadow-sm">
+    <div>
+      <p class="font-bold text-lg">${u.name || "User"}</p>
+      <p class="text-xs opacity-60">${u.email || u.mobile || "Guest"}</p>
+    </div>`;
+}
+
+    function setTheme(t){
+        if(t === 'dark'){
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    }
+
+    window.addPost = () => {
+        const u = JSON.parse(localStorage.getItem("cc_user"));
+        if(!u || u.role==="guest") return alert("Please Login with Google to post items.");
+        const m = document.getElementById("postModal");
+        if(m) m.classList.remove("hidden");
+
+    };
+
+    const m = document.getElementById("postModal");
+    if(m) m.classList.add("hidden");
+
+    // AUTH UI TOGGLE
+function showSignup() {
+  loginForm.classList.add("hidden");
+  signupForm.classList.remove("hidden");
+}
+
+function showLogin() {
+  signupForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+}
+
+function guestLogin(){
+  const guest = {
+    uid: "guest",
+    name: "Guest User",
+    role: "guest"
+  };
+
+  localStorage.setItem("cc_user", JSON.stringify(guest));
+  window.currentUser = guest;
+  enterApp();
+}
+
+function filterCategory(cat){
+  showScreen("home");
+  window.currentView = "home";
+
+  const feed = document.getElementById("feed");
+  feed.innerHTML = "";
+
+  const filtered = window.items.filter(p => p.category === cat);
+
+  if(filtered.length === 0){
+    feed.innerHTML = "<p class='opacity-50 text-center'>No items</p>";
+    return;
+  }
+
+  filtered.forEach(p=>{
+    const saved = window.savedIds.has(p.id);
+    feed.innerHTML += `
+      <div onclick="openPostDetails('${p.id}')"
+        class="bg-white dark:bg-gray-800 p-4 rounded-xl border cursor-pointer">
+        <div class="flex justify-between">
+          <h3 class="font-bold">${p.title}</h3>
+          <button onclick="event.stopPropagation(); toggleSave('${p.id}')"
+            class="${saved ? 'text-red-500' : 'text-gray-300'}">❤️</button>
+        </div>
+        <p class="text-indigo-600 font-bold">₹${p.price}</p>
+      </div>
+    `;
+  });
+}
+
+window.markSold = async (id) => {
+  await setDoc(doc(db,"posts",id), { status:"sold" }, { merge:true });
+};
+
+window.deletePost = async (id) => {
+  showToast("Tap again to confirm delete");
+
+  if (window.__deleteTimer) {
+    clearTimeout(window.__deleteTimer);
+    window.__deleteTimer = null;
+
+    await deleteDoc(doc(db, "posts", id));
+    showToast("Post deleted ❌");
+    return;
+  }
+
+  window.__deleteTimer = setTimeout(() => {
+    window.__deleteTimer = null;
+  }, 3000);
+};
+
+window.sellerUpdateOrder = async (orderId, status) => {
+  const ref = doc(db, "orders", orderId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const order = snap.data();
+
+  await setDoc(
+    ref,
+    {
+      status,
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+
+  // 🔥 IMPORTANT FIX
+  if (status === "rejected") {
+    await setDoc(
+      doc(db, "posts", order.postId),
+      { status: "active" },
+      { merge: true }
+    );
+    showToast("Order rejected ❌ — Post reopened");
+  }
+
+  if (status === "accepted") {
+    showToast("Order accepted ✅");
+  }
+
+  if (status === "completed") {
+    await setDoc(
+      doc(db, "posts", order.postId),
+      { status: "sold" },
+      { merge: true }
+    );
+    showToast("Order completed 🎉");
+  }
+  // 🔥 FORCE REFRESH
+window.postCache.clear();
+listenToFeed();
+
+};
+
+window.showToast = (msg) => {
+  let t = document.getElementById("toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "toast";
+    t.className =
+      "fixed bottom-24 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-xl text-sm z-[999]";
+    document.body.appendChild(t);
+  }
+
+  t.innerText = msg;
+  t.style.opacity = "1";
+
+  setTimeout(() => {
+    t.style.opacity = "0";
+  }, 2500);
+};
+
+
+
+onSnapshot(
+  query(collection(db, "orders"), where("status", "==", "completed")),
+  snap => {
+    snap.forEach(o => {
+      const data = o.data();
+      if (data.postId) {
+        setDoc(
+          doc(db, "posts", data.postId),
+          { status: "sold" },
+          { merge: true }
+        );
+      }
+    });
+  }
+);
+
+window.openImageViewer = (src) => {
+  const v = document.getElementById("imageViewer");
+  const img = document.getElementById("viewerImg");
+  img.src = src;
+  v.classList.remove("hidden");
+};
+
+window.closeImageViewer = () => {
+  const v = document.getElementById("imageViewer");
+  const img = document.getElementById("viewerImg");
+  img.src = "";
+  v.classList.add("hidden");
+};
+
+window.openImageViewer = (src) => {
+  const v = document.getElementById("imageViewer");
+  const img = document.getElementById("viewerImg");
+  img.src = src;
+  v.classList.remove("hidden");
+};
+
+window.closeImageViewer = () => {
+  const v = document.getElementById("imageViewer");
+  const img = document.getElementById("viewerImg");
+  img.src = "";
+  v.classList.add("hidden");
+};
+
+</script>
+
+<script>
+function setActiveNav(screen){
+  document.querySelectorAll("#nav .navBtn")
+    .forEach(b=>b.classList.remove("active"));
+
+  const map = {
+  home: 1,
+  categories: 2,
+  "my-posts": 4,
+  orders: 5
+};
+
+  const idx = map[screen];
+  if(idx!==undefined){
+    document.querySelectorAll("#nav .navBtn")[idx]
+      ?.classList.add("active");
+  }
+}
+
+/* hook into existing showScreen */
+const _showScreen = window.showScreen;
+window.showScreen = function(n){
+  _showScreen(n);
+  setActiveNav(n);
+}
+
+window.toggleSidebar = () => {
+  const nav = document.getElementById("nav");
+  nav.classList.toggle("expanded");
+
+  // optional: remember state
+  localStorage.setItem(
+    "cc_sidebar",
+    nav.classList.contains("expanded") ? "1" : "0"
+  );
+}; 
+
+// restore on load
+window.addEventListener("load", () => {
+  const nav = document.getElementById("nav");
+  if (localStorage.getItem("cc_sidebar") === "1") {
+    nav.classList.add("expanded");
+  }
+});
+
+window.goHome = () => {
+  window.currentView = "home";
+
+  // 🔥 reset category filter
+  window.activeCategory = null;
+
+  showScreen("home");
+  renderFeed();
+};
+
+const nav = document.getElementById('nav');
+let isDragging = false;
+let offsetY = 0;
+let lastTap = 0;
+let pinned = false;
+
+// Dragging
+nav.addEventListener('mousedown', e => {
+  if (window.innerWidth < 1025) return; // only desktop
+  if (!pinned) {
+    isDragging = true;
+    offsetY = e.clientY - nav.getBoundingClientRect().top;
+    nav.style.transition = 'none';
+  }
+});
+
+document.addEventListener('mousemove', e => {
+  if (isDragging) {
+    let newTop = e.clientY - offsetY;
+    newTop = Math.max(20, Math.min(window.innerHeight - nav.offsetHeight - 20, newTop));
+    nav.style.top = newTop + 'px';
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    nav.style.transition = 'top 0.2s ease';
+  }
+});
+
+// Hover expand
+nav.addEventListener('mouseenter', () => {
+  if (!pinned) nav.classList.add('hovered');
+});
+
+nav.addEventListener('mouseleave', () => {
+  if (!pinned) nav.classList.remove('hovered');
+});
+
+// Double-tap to pin
+nav.addEventListener('click', () => {
+  const now = new Date().getTime();
+  if (now - lastTap < 300) { // double-tap threshold
+    pinned = !pinned;
+    if (pinned) nav.classList.add('expanded');
+    else nav.classList.remove('expanded');
+  }
+  lastTap = now;
+});
+
+window.hasActivePaidOrder = async (postId) => {
+  const u = window.currentUser;
+  if (!u) return false;
+
+  const q = query(
+    collection(db, "orders"),
+    where("postId", "==", postId),
+    where("buyerId", "==", u.uid),
+    where("paymentStatus", "==", "paid"),
+    where("status", "in", ["accepted", "completed"])
+  );
+
+  const snap = await getDocs(q);
+  return !snap.empty;
+};
+
+async function canUserConnect(postId){
+  const u = window.currentUser;
+  if(!u || u.role === "guest") return false;
+
+  const q = query(
+    collection(db,"orders"),
+    where("postId","==",postId),
+    where("buyerId","==",u.uid),
+    where("paymentStatus","==","paid")
+  );
+
+  const snap = await getDocs(q);
+  return !snap.empty;
+}
+
+async function handleChat(postId) {
+  const access = await canAccessChatCall();
+  if (!access) {
+    showScreen("promo"); // redirect to promo screen
+    return;
+  }
+
+  const post = window.postCache.get(postId);
+  if (!post) return;
+
+  alert(`Opening chat with ${post.ownerName || "User"}`);
+  // TODO: integrate real chat
+}
+
+async function handleCall(postId) {
+  const access = await canAccessChatCall();
+  if (!access) {
+    showScreen("promo"); // redirect to promo screen
+    return;
+  }
+
+  const post = window.postCache.get(postId);
+  if (!post) return;
+
+  alert(`Calling ${post.ownerName || "User"} at ${post.contact || "N/A"}`);
+  // TODO: integrate real call (tel: link)
+}
+
+</script>
+
+<script>
+function toggleSidebar(){
+  const nav = document.getElementById("nav");
+  const overlay = document.getElementById("sidebarOverlay");
+
+  nav.classList.toggle("open");
+  overlay.classList.toggle("show");
+}
+
+function closeSidebar(){
+  document.getElementById("nav").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+
+// Open premium contact modal
+function openPremiumContactModal(postId) {
+    window.tempPostIdForUpgrade = postId;   // remember which post
+    document.getElementById("premiumContactModal").classList.remove("hidden");
+}
+
+// Close premium modal
+function closePremiumModal() {
+    document.getElementById("premiumContactModal").classList.add("hidden");
+    window.tempPostIdForUpgrade = null;
+}
+
+// When user clicks "Pay & Unlock" button
+function goToPaymentForContact() {
+    closePremiumModal();
+    
+    const postId = window.tempPostIdForUpgrade;
+    if (postId) {
+        // Directly trigger the existing payment/order flow
+        placeOrder(postId);
+    }
+}
+
+async function canAccessChatCall() {
+  const u = window.currentUser;
+  if (!u || u.role === "guest") return false;
+
+  try {
+    // Query orders where buyer is current user and status is completed/paid
+    const q = query(
+      collection(db, "orders"),
+      where("buyerId", "==", u.uid),
+      where("paymentStatus", "==", "completed") // 🔥 only completed payments
+    );
+
+    const snap = await getDocs(q);
+    return !snap.empty; // ✅ true if at least one completed order
+  } catch (err) {
+    console.error("Error checking order/payment:", err);
+    return false;
+  }
+}
+
+</script>
+
+<script>
+  lucide.createIcons();
+</script>
+
+<!-- 🔍 FULL IMAGE VIEWER -->
+<div id="imageViewer"
+  class="fixed inset-0 hidden z-[999] bg-black/90 flex items-center justify-center">
+
+  <button onclick="closeImageViewer()"
+    class="absolute top-4 right-4 text-white text-3xl font-bold">
+    ✕
+  </button>
+
+  <img id="viewerImg"
+    class="max-w-[95vw] max-h-[90vh] object-contain rounded-lg">
+</div>
+<!-- 🔍 FULL IMAGE VIEWER -->
+<div id="imageViewer"
+  class="fixed inset-0 hidden z-[999] bg-black/90 flex items-center justify-center">
+
+  <button onclick="closeImageViewer()"
+    class="absolute top-4 right-4 text-white text-3xl font-bold">
+    ✕
+  </button>
+
+  <img id="viewerImg"
+    class="max-w-[95vw] max-h-[90vh] object-contain rounded-xl">
+</div>
+
+<!-- 🔥 MOBILE FLOATING ADD BUTTON -->
+<button onclick="addPost()"
+ class="md:hidden fixed bottom-24 left-1/2 -translate-x-1/2
+        bg-gradient-to-br from-indigo-500 to-purple-600
+        text-white rounded-full p-5 shadow-2xl
+        hover:scale-110 transition z-[60]">
+
+  <i data-lucide="plus" class="icon"></i>
+
+  <span class="absolute inset-0 rounded-full animate-ping
+        bg-indigo-400 opacity-30"></span>
+</button>
+
+<!-- Premium Contact Unlock Modal -->
+<div id="premiumContactModal" class="hidden fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+
+  <div class="bg-gradient-to-br from-gray-900 to-black border border-gray-700/50 rounded-2xl w-full max-w-md p-6 relative shadow-2xl animate-fadeIn">
+
+    <!-- Close Button (X) -->
+    <button onclick="closePremiumModal()" 
+            class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl font-bold">
+      ×
+    </button>
+
+    <div class="text-center space-y-5">
+
+      <div class="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg">
+        <span class="text-3xl">🔒</span>
+      </div>
+
+      <h2 class="text-2xl font-bold text-white">Chat & Call Unlock చేయండి!</h2>
+
+      <p class="text-gray-300 text-base leading-relaxed">
+        Sellerతో <b>డైరెక్ట్ Chat</b> లేదా <b>Call</b> చేయాలంటే<br>
+        ఒక్కసారి <span class="text-orange-400 font-semibold">Order ప్లేస్ చేసి Payment</span> పూర్తి చేయండి.
+      </p>
+
+      <div class="pt-3">
+        <button onclick="goToPaymentForContact()"
+                class="w-full py-4 px-6 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold text-lg rounded-xl shadow-lg hover:scale-[1.03] transition-transform">
+          Pay & Unlock Chat/Call →
+        </button>
+      </div>
+
+      <p class="text-sm text-gray-500 pt-2">
+        Secure UPI • Cards • Wallets • Instant Activation
+      </p>
+
+      <button onclick="closePremiumModal()"
+              class="text-gray-400 hover:text-gray-200 text-sm underline mt-2">
+        Maybe later
+      </button>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
