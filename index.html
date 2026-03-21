@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Campus Connect</title>
- 
+
 <link rel="manifest" href="manifest.json">
 
 <meta name="theme-color" content="#111827">
@@ -1188,6 +1188,13 @@ function listenToHomeAd(){
 // expose to window
 window.listenToHomeAd = listenToHomeAd;
 
+async function sendNotification(userId, text) {
+  await addDoc(collection(db, "notifications"), {
+    userId,
+    text,
+    createdAt: serverTimestamp()
+  });
+}
 </script>
 
 <script>
@@ -1527,6 +1534,12 @@ async function placeOrder(postId) {
     );
 
     showToast("Order placed 🎉");
+  
+    // Buyer notification
+await sendNotification(u.uid, `✅ Payment successful for "${post.title}"`);
+
+// Seller notification
+await sendNotification(post.ownerId, `💰 New order received for "${post.title}"`);
 
     // 🔥🔥🔥 ADD HERE ONLY
     const phone = post.contact;
@@ -2303,7 +2316,14 @@ async function handleChat(postId) {
   }
 
   const post = window.postCache.get(postId);
-  alert(`Chat with ${post.ownerName}`);
+
+  const phone = post.contact;
+
+  const message = encodeURIComponent(
+    `Hi ${post.ownerName}, I'm interested in "${post.title}" from Campus Connect.`
+  );
+
+  window.open(`https://wa.me/91${phone}?text=${message}`, "_blank");
 }
 
 async function handleCall(postId) {
@@ -2315,7 +2335,10 @@ async function handleCall(postId) {
   }
 
   const post = window.postCache.get(postId);
-  window.location.href = `tel:${post.contact}`;
+
+  const phone = post.contact;
+
+  window.location.href = `tel:${phone}`;
 }
 
 </script>
