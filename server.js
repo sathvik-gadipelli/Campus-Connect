@@ -1,7 +1,6 @@
 import express from "express";
 import Razorpay from "razorpay";
 import cors from "cors";
-import crypto from "crypto";
 
 const app = express();
 
@@ -46,6 +45,8 @@ app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
 
+import crypto from "crypto";
+
 app.post("/verify-payment", (req, res) => {
   try {
     const {
@@ -57,18 +58,18 @@ app.post("/verify-payment", (req, res) => {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-      .createHmac("sha256", "HZXeDSZSBUvVnC4Az4WEoser") // 🔥 YOUR SECRET
+      .createHmac("sha256", "HZXeDSZSBUvVnC4Az4WEoser")
       .update(body.toString())
       .digest("hex");
 
     if (expectedSignature === razorpay_signature) {
       res.json({ success: true });
     } else {
-      res.status(400).json({ success: false });
+      res.json({ success: false });
     }
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).send("Verification failed");
   }
 });
