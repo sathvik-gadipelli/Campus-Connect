@@ -768,9 +768,8 @@ const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
 window.savedIds = new Set();
-window.currentUser = getUser();
 window.postCache = new Map(); // 🔥 SINGLE SOURCE FOR POSTS
-
+window.items = [];
 // 🔥 TRACK CURRENT SCREEN
 window.currentView = "home";
 
@@ -900,6 +899,7 @@ function getUser() {
   return u ? JSON.parse(u) : null;
 }
 
+window.currentUser = getUser();
 /* =========================
    🔐 GOOGLE LOGIN
 ========================= */
@@ -1354,12 +1354,12 @@ box.innerHTML = `
 </div>
 
 <div class="flex gap-2 mt-4">
-  <button onclick="handleChat('${postId}')"
+  <button id="chatBtn" onclick="handleChat('${postId}')"
     class="flex-1 p-3 rounded-xl bg-indigo-600 text-white font-bold">
     💬 Chat
   </button>
 
-  <button onclick="handleCall('${postId}')"
+  <button id="callBtn" onclick="handleCall('${postId}')"
     class="flex-1 p-3 rounded-xl bg-green-600 text-white font-bold">
     📞 Call
   </button>
@@ -1406,62 +1406,115 @@ window.goBackFromDetails = () => {
 };
 
 async function placeOrder(postId) {
-  const u = window.currentUser;
-  if (!u || u.role === "guest") {
-    showToast("Login required");
-    return;
-  }
-
-  const post = window.postCache.get(postId);
-  if (!post) return;
-
-  if (typeof Razorpay === "undefined") {
-    alert("Payment system failed to load");
-    return;
-  }
-
-  const options = {
-    key: "rzp_test_STnjbvjNX1ceKz", // 🔥 PUT YOUR KEY
-    amount: post.price * 100,
-    currency: "INR",
-    name: "Campus Connect",
-    description: post.title,
-
-    handler: async function (response) {
-      await addDoc(collection(db, "orders"), {
-        postId,
-        postTitle: post.title,
-        price: post.price,
-
-        buyerId: u.uid,
-        buyerName: u.name,
-
-        sellerId: post.ownerId,
-        sellerName: post.ownerName,
-
-        status: "placed",
-        paymentStatus: "completed", // 🔥 FIXED
-
-        razorpayId: response.razorpay_payment_id,
-        createdAt: serverTimestamp()
-      });
-
-      showToast("Payment Successful ✅");
-      showScreen("orders");
-    },
-
-    prefill: {
-      name: u.name,
-      email: u.email || ""
-    },
-
-    theme: {
-      color: "#6366f1"
+  try {
+    const u = window.currentUser;
+    if (!u || u.role === "guest") {
+      showToast("Login required");
+      return;
     }
-  };
 
-  const rzp = new Razorpay(options);
-  rzp.open();
+    const post = window.postCache.get(postId);
+    if (!post) {
+      showToast("Post not found");
+      return;
+    }
+
+    showToast("Creating order...");
+
+    // 🔥 CALL BACKEND
+    const res = await fetch("https://sathvik-gadipelli.github.io/Campus-Connect/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        amount: post.price * 100
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error("Backend not responding");
+    }
+
+    const order = await res.json();
+
+    if (!order.id) {
+      throw new Error("Invalid order response");
+    }
+
+    // 🔥 RAZORPAY CONFIG
+    const options = {
+      key: "rzp_test_STv4z5jBSS1Pal",
+      amount: order.amount,
+      currency: "INR",
+      order_id: order.id,
+
+      name: "Campus Connect",
+      description: post.title,
+
+      handler: async function (response) {
+        try {
+          if (!response.razorpay_payment_id) {
+            showToast("Payment failed ❌");
+            return;
+          }
+
+          showToast("Payment success ✅");
+
+          // 🔥 FIXED FIRESTORE SAVE
+          await setDoc(
+            doc(db, "orders", order.id),
+            {
+              postId: postId,
+              postTitle: post.title,
+              price: post.price,
+
+              buyerId: u.uid,
+              buyerName: u.name,
+
+              sellerId: post.ownerId,
+              sellerName: post.ownerName,
+
+              status: "placed",
+              paymentStatus: "paid",
+
+              razorpayId: response.razorpay_payment_id,
+              createdAt: serverTimestamp()
+            },
+            { merge: true } // 🔥 THIS WAS WRONG IN YOUR CODE
+          );
+
+          showScreen("orders");
+
+        } catch (err) {
+          console.error(err);
+          showToast("Payment saved error ❌");
+        }
+      },
+
+      modal: {
+        ondismiss: function () {
+          showToast("Payment cancelled ❌");
+        }
+      },
+
+      prefill: {
+        name: u.name,
+        email: u.email || ""
+      },
+
+      theme: {
+        color: "#6366f1"
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.error("ORDER ERROR:", err);
+    showToast("Order failed ❌ Check backend/server");
+  }
 }
 </script>
 
@@ -2059,20 +2112,6 @@ window.closeImageViewer = () => {
   v.classList.add("hidden");
 };
 
-window.openImageViewer = (src) => {
-  const v = document.getElementById("imageViewer");
-  const img = document.getElementById("viewerImg");
-  img.src = src;
-  v.classList.remove("hidden");
-};
-
-window.closeImageViewer = () => {
-  const v = document.getElementById("imageViewer");
-  const img = document.getElementById("viewerImg");
-  img.src = "";
-  v.classList.add("hidden");
-};
-
 </script>
 
 <script>
@@ -2100,17 +2139,6 @@ window.showScreen = function(n){
   _showScreen(n);
   setActiveNav(n);
 }
-
-window.toggleSidebar = () => {
-  const nav = document.getElementById("nav");
-  nav.classList.toggle("expanded");
-
-  // optional: remember state
-  localStorage.setItem(
-    "cc_sidebar",
-    nav.classList.contains("expanded") ? "1" : "0"
-  );
-}; 
 
 // restore on load
 window.addEventListener("load", () => {
@@ -2213,31 +2241,27 @@ async function canUserConnect(postId){
 }
 
 async function handleChat(postId) {
-  const access = await canAccessChatCall();
+  const access = await canAccessChatCall(postId);
+
   if (!access) {
-    showScreen("promo"); // redirect to promo screen
+    openPremiumContactModal(postId);
     return;
   }
 
   const post = window.postCache.get(postId);
-  if (!post) return;
-
-  alert(`Opening chat with ${post.ownerName || "User"}`);
-  // TODO: integrate real chat
+  alert(`Chat with ${post.ownerName}`);
 }
 
 async function handleCall(postId) {
-  const access = await canAccessChatCall();
+  const access = await canAccessChatCall(postId);
+
   if (!access) {
-    showScreen("promo"); // redirect to promo screen
+    openPremiumContactModal(postId);
     return;
   }
 
   const post = window.postCache.get(postId);
-  if (!post) return;
-
-  alert(`Calling ${post.ownerName || "User"} at ${post.contact || "N/A"}`);
-  // TODO: integrate real call (tel: link)
+  window.location.href = `tel:${post.contact}`;
 }
 
 </script>
@@ -2287,36 +2311,22 @@ async function canAccessChatCall(postId) {
     collection(db, "orders"),
     where("postId", "==", postId),
     where("buyerId", "==", u.uid),
-    where("paymentStatus", "==", "completed")
+    where("paymentStatus", "==", "paid"),
+    where("status", "in", ["placed", "accepted", "completed"])
   );
 
+  window.getDocs = getDocs;
   const snap = await getDocs(q);
   return !snap.empty;
 }
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js")
-    .then(() => console.log("SW registered"))
-    .catch(err => console.log("SW error", err));
-}
 </script>
 
 <script>
   lucide.createIcons();
 </script>
 
-<!-- 🔍 FULL IMAGE VIEWER -->
-<div id="imageViewer"
-  class="fixed inset-0 hidden z-[999] bg-black/90 flex items-center justify-center">
 
-  <button onclick="closeImageViewer()"
-    class="absolute top-4 right-4 text-white text-3xl font-bold">
-    ✕
-  </button>
-
-  <img id="viewerImg"
-    class="max-w-[95vw] max-h-[90vh] object-contain rounded-lg">
-</div>
 <!-- 🔍 FULL IMAGE VIEWER -->
 <div id="imageViewer"
   class="fixed inset-0 hidden z-[999] bg-black/90 flex items-center justify-center">
