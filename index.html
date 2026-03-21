@@ -5,11 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Campus Connect</title>
 
-
 <link rel="manifest" href="manifest.json">
 
 <meta name="theme-color" content="#111827">
-    
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
     document.documentElement.classList.add('dark');
@@ -1414,61 +1413,56 @@ async function placeOrder(postId) {
   }
 
   const post = window.postCache.get(postId);
-  if (!post) {
-    showToast("Post not found");
+  if (!post) return;
+
+  if (typeof Razorpay === "undefined") {
+    alert("Payment system failed to load");
     return;
   }
 
-  try {
-    // 🔥 BLOCK ONLY ACTIVE ORDERS
-    const q = query(
-      collection(db, "orders"),
-      where("postId", "==", postId),
-      where("buyerId", "==", u.uid),
-      where("status", "in", ["placed", "accepted"])
-    );
+  const options = {
+    key: "rzp_test_STnjbvjNX1ceKz", // 🔥 PUT YOUR KEY
+    amount: post.price * 100,
+    currency: "INR",
+    name: "Campus Connect",
+    description: post.title,
 
-    const snap = await getDocs(q);
+    handler: async function (response) {
+      await addDoc(collection(db, "orders"), {
+        postId,
+        postTitle: post.title,
+        price: post.price,
 
-    if (!snap.empty) {
-      showToast("You already have an active order for this post");
-      return;
+        buyerId: u.uid,
+        buyerName: u.name,
+
+        sellerId: post.ownerId,
+        sellerName: post.ownerName,
+
+        status: "placed",
+        paymentStatus: "completed", // 🔥 FIXED
+
+        razorpayId: response.razorpay_payment_id,
+        createdAt: serverTimestamp()
+      });
+
+      showToast("Payment Successful ✅");
+      showScreen("orders");
+    },
+
+    prefill: {
+      name: u.name,
+      email: u.email || ""
+    },
+
+    theme: {
+      color: "#6366f1"
     }
+  };
 
-    // ✅ ALLOW IF PREVIOUS WAS rejected / completed
-    await addDoc(collection(db, "orders"), {
-      postId,
-      postTitle: post.title,
-      price: post.price,
-
-      buyerId: u.uid,
-      buyerName: u.name || "User",
-
-      sellerId: post.ownerId,
-      sellerName: post.ownerName || "User",
-
-      status: "placed", // placed → accepted → completed / rejected
-      paymentStatus: "pending",
-
-      createdAt: serverTimestamp()
-    });
-
-    // 🔒 TEMPORARILY LOCK POST
-await setDoc(
-  doc(db, "posts", postId),
-  { status: "pending" },
-  { merge: true }
-);
-
-    showToast("Order placed successfully ✅");
-    showScreen("orders");
-
-  } catch (e) {
-    console.error(e);
-    showToast("Order failed");
-  }
+  const rzp = new Razorpay(options);
+  rzp.open();
 }
-
 </script>
 
 <script>
@@ -2285,26 +2279,26 @@ function goToPaymentForContact() {
     }
 }
 
-async function canAccessChatCall() {
+async function canAccessChatCall(postId) {
   const u = window.currentUser;
   if (!u || u.role === "guest") return false;
 
-  try {
-    // Query orders where buyer is current user and status is completed/paid
-    const q = query(
-      collection(db, "orders"),
-      where("buyerId", "==", u.uid),
-      where("paymentStatus", "==", "completed") // 🔥 only completed payments
-    );
+  const q = query(
+    collection(db, "orders"),
+    where("postId", "==", postId),
+    where("buyerId", "==", u.uid),
+    where("paymentStatus", "==", "completed")
+  );
 
-    const snap = await getDocs(q);
-    return !snap.empty; // ✅ true if at least one completed order
-  } catch (err) {
-    console.error("Error checking order/payment:", err);
-    return false;
-  }
+  const snap = await getDocs(q);
+  return !snap.empty;
 }
-    
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js")
+    .then(() => console.log("SW registered"))
+    .catch(err => console.log("SW error", err));
+}
 </script>
 
 <script>
@@ -2400,6 +2394,8 @@ if ("serviceWorker" in navigator) {
     .catch(err => console.log("SW Error:", err));
 }
 </script>
-    
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 </body>
 </html>
