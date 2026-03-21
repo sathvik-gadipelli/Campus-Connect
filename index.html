@@ -511,6 +511,10 @@ img{
     ❤️
   </button>
 
+  <button onclick="showScreen('notifications')" class="navBtn">
+  🔔
+</button>
+
   <!-- PROFILE -->
   <button onclick="showScreen('profile')" class="navBtn">
     <i data-lucide="user" class="icon"></i>
@@ -524,6 +528,11 @@ img{
   <div id="screen-saved" class="hidden p-4 space-y-4">
   <h2 class="text-xl font-bold">❤️ Saved Items</h2>
   <div id="savedFeed" class="space-y-3"></div>
+
+  <div id="screen-notifications" class="hidden p-4 space-y-3">
+  <h2 class="text-xl font-bold">🔔 Notifications</h2>
+  <div id="notificationFeed"></div>
+  </div>
 </div>
 
 <div id="screen-my-posts" class="hidden p-4 space-y-4">
@@ -738,15 +747,17 @@ import {
   addDoc,
   setDoc,
   getDoc,
-  getDocs,
+  getDocs,   // ✅ MUST BE HERE
   doc,
-  query,              // ✅ ADD THIS LINE
+  query,
   where,
   orderBy,
   onSnapshot,
   deleteDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+window.getDocs = getDocs;
 
 /* =========================
    🔥 FIREBASE INIT (MISSING FIX)
@@ -1275,7 +1286,7 @@ feed.className = `
 
 const thumb = (p.images && p.images.length)
   ? p.images[0]
-  : "https://via.placeholder.com/300x200?text=No+Image";
+  : "https://dummyimage.com/300x200/cccccc/000000&text=No+Image";
 
 feed.innerHTML += `
 <div onclick="openPostDetails('${p.id}')"
@@ -1317,6 +1328,7 @@ window.openPostDetails = async (postId) => {
   }
 
   const saved = window.savedIds.has(postId);
+  const hasAccess = await canAccessChatCall(postId);
   const box = document.getElementById("postDetailsCard");
 
   box.dataset.id = postId;
@@ -1355,12 +1367,12 @@ box.innerHTML = `
 
 <div class="flex gap-2 mt-4">
   <button id="chatBtn" onclick="handleChat('${postId}')"
-    class="flex-1 p-3 rounded-xl bg-indigo-600 text-white font-bold">
+    class="flex-1 p-3 rounded-xl ${hasAccess ? 'bg-indigo-600' : 'bg-gray-400'} text-white font-bold">
     💬 Chat
   </button>
 
   <button id="callBtn" onclick="handleCall('${postId}')"
-    class="flex-1 p-3 rounded-xl bg-green-600 text-white font-bold">
+    class="flex-1 p-3 rounded-xl ${hasAccess ? 'bg-green-600' : 'bg-gray-400'} text-white font-bold">
     📞 Call
   </button>
 </div>
@@ -1408,41 +1420,60 @@ window.goBackFromDetails = () => {
 async function placeOrder(postId) {
   try {
     const u = window.currentUser;
+
+    // ❌ Not logged in
     if (!u || u.role === "guest") {
-      showToast("Login required");
+      showToast("Login required ❗");
       return;
     }
 
     const post = window.postCache.get(postId);
+
+    // ❌ Post missing
     if (!post) {
-      showToast("Post not found");
+      showToast("Post not found ❌");
       return;
     }
 
-    showToast("Creating order...");
+    // ❌ Invalid price protection
+    if (!post.price || post.price <= 0) {
+      showToast("Invalid price ❌");
+      return;
+    }
 
-    // 🔥 CALL BACKEND
-    const res = await fetch("https://sathvik-gadipelli.github.io/Campus-Connect/", {
+    showToast("Creating secure order...");
+
+    // ✅ STEP 1: CALL BACKEND
+    const res = await fetch("https://campus-connect-q0ip.onrender.com/create-order", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        amount: post.price * 100
+        amount: Math.round(post.price * 100) // paise
       })
     });
 
+    // 🔍 DEBUG LOG
+    console.log("Backend status:", res.status);
+
     if (!res.ok) {
-      throw new Error("Backend not responding");
+      const errText = await res.text();
+      console.error("Backend error:", errText);
+      throw new Error("Backend failed");
     }
 
     const order = await res.json();
 
-    if (!order.id) {
+    console.log("Order response:", order);
+
+    if (!order || !order.id) {
       throw new Error("Invalid order response");
     }
 
-    // 🔥 RAZORPAY CONFIG
+    showToast("Opening payment...");
+
+    // ✅ STEP 2: RAZORPAY
     const options = {
       key: "rzp_test_STv4z5jBSS1Pal",
       amount: order.amount,
@@ -1453,44 +1484,67 @@ async function placeOrder(postId) {
       description: post.title,
 
       handler: async function (response) {
-        try {
-          if (!response.razorpay_payment_id) {
-            showToast("Payment failed ❌");
-            return;
-          }
+  try {
+    showToast("Verifying payment...");
 
-          showToast("Payment success ✅");
-
-          // 🔥 FIXED FIRESTORE SAVE
-          await setDoc(
-            doc(db, "orders", order.id),
-            {
-              postId: postId,
-              postTitle: post.title,
-              price: post.price,
-
-              buyerId: u.uid,
-              buyerName: u.name,
-
-              sellerId: post.ownerId,
-              sellerName: post.ownerName,
-
-              status: "placed",
-              paymentStatus: "paid",
-
-              razorpayId: response.razorpay_payment_id,
-              createdAt: serverTimestamp()
-            },
-            { merge: true } // 🔥 THIS WAS WRONG IN YOUR CODE
-          );
-
-          showScreen("orders");
-
-        } catch (err) {
-          console.error(err);
-          showToast("Payment saved error ❌");
-        }
+    const verifyRes = await fetch("https://campus-connect-q0ip.onrender.com/verify-payment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
+      body: JSON.stringify(response)
+    });
+
+    const verifyData = await verifyRes.json();
+
+    if (!verifyData.success) {
+      showToast("Payment verification failed ❌");
+      return;
+    }
+
+    showToast("Payment verified ✅");
+
+    // ✅ SAVE ORDER
+    await setDoc(
+      doc(db, "orders", order.id),
+      {
+        postId,
+        postTitle: post.title,
+        price: post.price,
+
+        buyerId: u.uid,
+        buyerName: u.name,
+
+        sellerId: post.ownerId,
+        sellerName: post.ownerName,
+
+        status: "placed",
+        paymentStatus: "paid",
+
+        razorpayId: response.razorpay_payment_id,
+        createdAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+
+    showToast("Order placed 🎉");
+
+    // 🔥🔥🔥 ADD HERE ONLY
+    const phone = post.contact;
+    const message = encodeURIComponent(
+      `Hi ${post.ownerName}, I paid for "${post.title}". Let's connect.`
+    );
+
+    window.open(`https://wa.me/91${phone}?text=${message}`, "_blank");
+
+    // 👉 Then navigate
+    showScreen("orders");
+
+  } catch (err) {
+    console.error(err);
+    showToast("Verification failed ❌");
+  }
+},
 
       modal: {
         ondismiss: function () {
@@ -1499,7 +1553,7 @@ async function placeOrder(postId) {
       },
 
       prefill: {
-        name: u.name,
+        name: u.name || "",
         email: u.email || ""
       },
 
@@ -1513,7 +1567,7 @@ async function placeOrder(postId) {
 
   } catch (err) {
     console.error("ORDER ERROR:", err);
-    showToast("Order failed ❌ Check backend/server");
+    showToast("Order failed ❌ Check backend / CORS");
   }
 }
 </script>
@@ -2138,6 +2192,7 @@ const _showScreen = window.showScreen;
 window.showScreen = function(n){
   _showScreen(n);
   setActiveNav(n);
+  if(n === "notifications") listenToNotifications();
 }
 
 // restore on load
@@ -2320,6 +2375,32 @@ async function canAccessChatCall(postId) {
   return !snap.empty;
 }
 
+function listenToNotifications(){
+  const u = window.currentUser;
+  if(!u) return;
+
+  const q = query(
+    collection(db,"notifications"),
+    where("userId","==",u.uid)
+  );
+
+  onSnapshot(q, snap=>{
+    const feed = document.getElementById("notificationFeed");
+    if(!feed) return;
+
+    feed.innerHTML = "";
+
+    snap.forEach(d=>{
+      const n = d.data();
+
+      feed.innerHTML += `
+        <div class="bg-white dark:bg-gray-800 p-3 rounded border">
+          ${n.text}
+        </div>
+      `;
+    });
+  });
+}
 </script>
 
 <script>
