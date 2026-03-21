@@ -2304,12 +2304,7 @@ async function canAccessChatCall() {
     return false;
   }
 }
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js")
-    .then(() => console.log("SW registered"))
-    .catch(err => console.log("SW error", err));
-}    
+    
 </script>
 
 <script>
@@ -2397,5 +2392,14 @@ if ("serviceWorker" in navigator) {
     </div>
   </div>
 </div>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js")
+    .then(() => console.log("SW Registered"))
+    .catch(err => console.log("SW Error:", err));
+}
+</script>
+    
 </body>
 </html>
