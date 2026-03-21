@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Campus Connect</title>
 
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#111827">
+    
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
     document.documentElement.classList.add('dark');
@@ -2300,6 +2305,11 @@ async function canAccessChatCall() {
   }
 }
 
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js")
+    .then(() => console.log("SW registered"))
+    .catch(err => console.log("SW error", err));
+}    
 </script>
 
 <script>
