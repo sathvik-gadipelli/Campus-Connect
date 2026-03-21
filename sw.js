@@ -1,25 +1,22 @@
-const CACHE_NAME = "campus-connect-v1";
+self.addEventListener("install", e => self.skipWaiting());
+self.addEventListener("activate", e => self.clients.claim());
 
-const urlsToCache = [
-  "./",
-  "./index.html",
-  "./manifest.json"
-];
-
-// INSTALL
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-// FETCH (OFFLINE SUPPORT)
 self.addEventListener("fetch", event => {
+  const url = event.request.url;
+
+  if (
+    url.includes("firebase") ||
+    url.includes("razorpay") ||
+    url.includes("cloudinary") ||
+    url.includes("onrender.com") ||
+    event.request.method !== "GET"
+  ) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        return response || fetch(event.request);
-      })
+    fetch(event.request).catch(() => {
+      return new Response("Offline", { status: 503 });
+    })
   );
 });
