@@ -10,8 +10,8 @@ app.use(express.json());
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET
-} );
- 
+});
+
 app.get("/", (req, res) => {
   res.send("Server running 🚀");
 });
@@ -37,6 +37,7 @@ app.post("/create-order", async (req, res) => {
     console.error("RAZORPAY ERROR:", err);
     res.status(500).send("Error creating order");
   }
+  
 });
 
 const PORT = process.env.PORT || 5000;
@@ -56,7 +57,6 @@ app.post("/verify-payment", (req, res) => {
     } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
-
     const expectedSignature = crypto
       .createHmac("sha256", "HZXeDSZSBUvVnC4Az4WEoser")
       .update(body.toString())
