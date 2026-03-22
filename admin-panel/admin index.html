@@ -24,6 +24,8 @@
             <button onclick="switchTab('orders')" class="w-full text-left p-3 rounded hover:bg-gray-800">📦 All Orders</button>
             <button onclick="switchTab('users')" class="w-full text-left p-3 rounded hover:bg-gray-800">👥 User Database</button>
             <button onclick="switchTab('config')" class="w-full text-left p-3 rounded hover:bg-gray-800">⚙️ App Settings</button>
+            <button onclick="switchTab('categories')" class="w-full text-left p-3 rounded hover:bg-gray-800">📂 Categories</button>
+            <button onclick="switchTab('accounts')" class="w-full text-left p-3 rounded hover:bg-gray-800">👤 Accounts & Payments</button>
         </div>
         <button onclick="location.reload()" class="p-4 text-red-400 hover:bg-red-900/20 text-left">Logout</button>
     </nav>
@@ -69,6 +71,36 @@
                 <textarea id="adText" class="w-full bg-gray-800 p-3 rounded border border-gray-700 h-24"></textarea>
                 <button onclick="updateAd()" class="bg-green-600 px-6 py-2 rounded font-bold">Save Changes</button>
             </div>
+        </section>
+
+                <!-- Categories Management -->
+        <section id="tab-categories" class="tab-content hidden space-y-4">
+          <h2 class="text-2xl font-bold">Category Management</h2>
+          <div class="bg-gray-900 p-6 rounded-xl space-y-4">
+            <input id="newCategoryName" type="text" placeholder="New Category Name" class="w-full p-3 rounded bg-gray-800 border border-gray-700">
+            <button onclick="addCategory()" class="bg-green-600 px-6 py-2 rounded font-bold">Add Category</button>
+          </div>
+          <div id="categoriesList" class="space-y-2"></div>
+         </section>
+
+        <!-- Accounts & Payments Management -->
+        <section id="tab-accounts" class="tab-content hidden space-y-4">
+          <h2 class="text-2xl font-bold">Accounts & Payments</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full bg-gray-900 rounded-lg">
+              <thead>
+                  <tr class="text-left border-b border-gray-800">
+                  <th class="p-4">Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Total Orders</th>
+                  <th>Total Paid</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="accountsTable"></tbody>
+            </table>
+          </div>
         </section>
 
     </main>
