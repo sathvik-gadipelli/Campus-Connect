@@ -8,7 +8,7 @@ const loginBtn = document.getElementById("loginBtn");
 const dashboard = document.getElementById("dashboard");
 const sidebar = document.getElementById("sidebar");
 
-/* 🔐 ADMIN LOGIN */
+ /* 🔐 ADMIN LOGIN */
 window.adminLogin = async () => {
   try {
     const res = await signInWithPopup(auth, provider);
