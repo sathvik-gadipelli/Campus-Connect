@@ -127,3 +127,77 @@ window.blockUser = async (uid) => {
     blocked: true
   });
 };
+
+// 🔹 Categories Listener
+onSnapshot(collection(db, "categories"), snap => {
+  const list = document.getElementById("categoriesList");
+  list.innerHTML = "";
+  snap.forEach(d => {
+    const cat = d.data();
+    list.innerHTML += `
+      <div class="bg-gray-800 p-3 rounded flex justify-between items-center">
+        <span>${cat.name} ${cat.active ? '(Active)' : '(Inactive)'}</span>
+        <div class="flex gap-2">
+          <button onclick="toggleCategory('${d.id}', ${cat.active})" class="bg-yellow-600 px-2 py-1 rounded text-xs">
+            ${cat.active ? 'Deactivate' : 'Activate'}
+          </button>
+          <button onclick="deleteCategory('${d.id}')" class="bg-red-600 px-2 py-1 rounded text-xs">Delete</button>
+        </div>
+      </div>`;
+  });
+});
+
+// Add Category
+window.addCategory = async () => {
+  const name = document.getElementById("newCategoryName").value.trim();
+  if(!name) return alert("Enter category name");
+  await setDoc(doc(db, "categories", name), { name, active: true });
+  document.getElementById("newCategoryName").value = "";
+};
+
+// Toggle Active/Inactive
+window.toggleCategory = async (id, current) => {
+  await updateDoc(doc(db, "categories", id), { active: !current });
+};
+
+// Delete Category
+window.deleteCategory = async (id) => {
+  if(confirm("Delete this category?")) await deleteDoc(doc(db, "categories", id));
+};
+
+// 🔹 Accounts Listener
+onSnapshot(collection(db, "users"), snap => {
+  const table = document.getElementById("accountsTable");
+  table.innerHTML = "";
+  snap.forEach(d => {
+    const u = d.data();
+    table.innerHTML += `
+      <tr class="border-b border-gray-800 text-sm">
+        <td class="p-4">${u.name}</td>
+        <td>${u.email}</td>
+        <td>${u.role}</td>
+        <td>${u.totalOrders || 0}</td>
+        <td>₹${u.totalPaid || 0}</td>
+        <td class="p-4 flex gap-2">
+          <button onclick="viewAccount('${d.id}')" class="text-blue-400">View</button>
+          <button onclick="toggleUserRole('${d.id}', '${u.role}')" class="text-green-400">${u.role === 'user' ? 'Promote' : 'Demote'}</button>
+          <button onclick="blockUser('${d.id}')" class="text-red-400">${u.blocked ? 'Unblock' : 'Block'}</button>
+        </td>
+      </tr>`;
+  });
+});
+
+// Toggle Role
+window.toggleUserRole = async (uid, role) => {
+  const newRole = role === 'user' ? 'admin' : 'user';
+  await updateDoc(doc(db, "users", uid), { role: newRole });
+};
+
+// View Account (simple alert for now, can expand later)
+window.viewAccount = async (uid) => {
+  const docSnap = await getDoc(doc(db, "users", uid));
+  if(docSnap.exists()) {
+    const u = docSnap.data();
+    alert(JSON.stringify(u, null, 2));
+  }
+};
