@@ -1322,104 +1322,97 @@ feed.innerHTML += `
 `;
   });
 }
+
 window.openPostDetails = async (postId) => {
   let post = window.postCache.get(postId);
 
   // 🔥 FALLBACK FETCH (FOR SAVED / DIRECT ACCESS)
   if (!post) {
     const snap = await getDoc(doc(db, "posts", postId));
-    if (!snap.exists()) return;
+    if (!snap.exists()) return alert("Post not found");
     post = { id: snap.id, ...snap.data() };
     window.postCache.set(postId, post);
   }
 
   const saved = window.savedIds.has(postId);
-  const hasAccess = await canAccessChatCall(postId);
   const box = document.getElementById("postDetailsCard");
-
   box.dataset.id = postId;
+
+  // Images carousel
   let imagesHtml = "";
-if (post.images && post.images.length) {
-  imagesHtml = `
-    <div class="relative overflow-x-auto flex gap-3 snap-x snap-mandatory scrollbar-hide mt-2">
-      ${post.images.map(img => `
-        <div class="min-w-full snap-center flex justify-center">
-          <img src="${img}"
-            onclick="openImageViewer('${img}')"
-            class="h-64 max-w-full object-contain rounded-xl cursor-pointer">
-        </div>
-      `).join("")}
+  if (post.images && post.images.length) {
+    imagesHtml = `
+      <div class="relative overflow-x-auto flex gap-3 snap-x snap-mandatory scrollbar-hide mt-2">
+        ${post.images.map(img => `
+          <div class="min-w-full snap-center flex justify-center">
+            <img src="${img}" onclick="openImageViewer('${img}')"
+              class="h-64 max-w-full object-contain rounded-xl cursor-pointer">
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  // Inject post details
+  box.innerHTML = `
+    <h2 class="text-2xl font-bold">${post.title}</h2>
+    <p class="text-sm opacity-80">${post.description || ""}</p>
+    ${imagesHtml}
+    <hr class="opacity-30 my-2">
+    <p class="text-indigo-600 font-bold text-xl">₹${post.price}</p>
+    <span class="inline-block text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700">
+      Status: ${post.status || "active"}
+    </span>
+    <p class="text-xs opacity-60">Category: ${post.category}</p>
+
+    <hr class="opacity-30 my-2">
+
+    <div class="text-sm space-y-1">
+      <p class="font-bold">Seller Details</p>
+      <p>Name: ${post.ownerName || "User"}</p>
+    </div>
+
+    <div class="flex gap-2 mt-4">
+      <button id="chatBtn"
+        class="flex-1 p-3 rounded-xl bg-indigo-600 text-white font-bold"
+        onclick="handleChat('${postId}')">
+        💬 Chat
+      </button>
+
+      <button id="callBtn"
+        class="flex-1 p-3 rounded-xl bg-green-600 text-white font-bold"
+        onclick="handleCall('${postId}')">
+        📞 Call
+      </button>
+    </div>
+
+    <div class="flex gap-2 pt-2">
+      <button onclick="toggleSave('${postId}')"
+        class="flex-1 p-3 rounded-lg border ${saved ? 'bg-red-500 text-white' : 'bg-white dark:bg-gray-700'}">
+        ❤️ ${saved ? "Saved" : "Save"}
+      </button>
+
+      <button onclick="placeOrder('${postId}')"
+        class="w-full mt-4 p-4 rounded-xl
+               bg-orange-500 text-black
+               font-extrabold text-lg">
+        Pay & Connect →
+      </button>
+
+      <p class="text-xs text-center opacity-50 mt-2">
+        Fast UPI • Wallet • Secure
+      </p>
     </div>
   `;
-}
 
-box.innerHTML = `
-  <h2 class="text-2xl font-bold">${post.title}</h2>
-  <p class="text-sm opacity-80">${post.description || ""}</p>
-  ${imagesHtml}
-  <hr class="opacity-30 my-2">
-  <p class="text-indigo-600 font-bold text-xl">₹${post.price}</p>
-  <span class="inline-block text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700">
-    Status: ${post.status || "active"}
-  </span>
-  <p class="text-xs opacity-60">Category: ${post.category}</p>
-
-  <hr class="opacity-30 my-2">
-
-  <div class="text-sm space-y-1">
-  <p class="font-bold">Seller Details</p>
-  <p>Name: ${post.ownerName || "User"}</p>
-</div>
-
-<div class="flex gap-2 mt-4">
-  <button id="chatBtn" onclick="handleChat('${postId}')"
-    class="flex-1 p-3 rounded-xl ${hasAccess ? 'bg-indigo-600' : 'bg-gray-400'} text-white font-bold">
-    💬 Chat
-  </button>
-
-  <button id="callBtn" onclick="handleCall('${postId}')"
-    class="flex-1 p-3 rounded-xl ${hasAccess ? 'bg-green-600' : 'bg-gray-400'} text-white font-bold">
-    📞 Call
-  </button>
-</div>
-
-  <div class="flex gap-2 pt-2">
-    <button onclick="toggleSave('${postId}')"
-      class="flex-1 p-3 rounded-lg border ${saved ? 'bg-red-500 text-white' : 'bg-white dark:bg-gray-700'}">
-      ❤️ ${saved ? "Saved" : "Save"}
-    </button>
-    <button onclick="placeOrder('${postId}')"
- class="w-full mt-4 p-4 rounded-xl
-        bg-orange-500 text-black
-        font-extrabold text-lg">
-  Pay & Connect →
-</button>
-
-<p class="text-xs text-center opacity-50 mt-2">
-  Fast UPI • Wallet • Secure
-</p>
-  </div>
-`;
-
-// After injecting HTML
-const chatBtn = document.getElementById("chatBtn");
-const callBtn = document.getElementById("callBtn");
-
-if (chatBtn) {
-  chatBtn.onclick = () => handleChat(postId);
-}
-
-if (callBtn) {
-  callBtn.onclick = () => handleCall(postId);
-}
+  // Show post details screen
   showScreen("post-details");
   window.currentView = "post-details";
 };
 
 window.goBackFromDetails = () => {
   const box = document.getElementById("postDetailsCard");
-  if(box) box.innerHTML = "";
-
+  if (box) box.innerHTML = "";
   showScreen("home");
 };
 
@@ -2307,40 +2300,47 @@ async function canUserConnect(postId){
   return !snap.empty;
 }
 
-async function handleChat(postId) {
-  const access = await canAccessChatCall(postId);
+// 🔥 CHAT HANDLER
+window.handleChat = (postId) => {
+  const u = window.currentUser;
+  if (!u) {
+    showToast("Login required ❗");
+    return;
+  }
 
-  if (!access) {
-    openPremiumContactModal(postId);
+  if (u.role === "guest") {
+    showToast("Guest cannot use chat. Please login.");
     return;
   }
 
   const post = window.postCache.get(postId);
+  if (!post) return showToast("Post not found ❌");
 
+  // Open chat with seller
   const phone = post.contact;
-
-  const message = encodeURIComponent(
-    `Hi ${post.ownerName}, I'm interested in "${post.title}" from Campus Connect.`
-  );
-
+  const message = encodeURIComponent(`Hi ${post.ownerName}, I am interested in "${post.title}".`);
   window.open(`https://wa.me/91${phone}?text=${message}`, "_blank");
-}
+};
 
-async function handleCall(postId) {
-  const access = await canAccessChatCall(postId);
+// 🔥 CALL HANDLER
+window.handleCall = (postId) => {
+  const u = window.currentUser;
+  if (!u) {
+    showToast("Login required ❗");
+    return;
+  }
 
-  if (!access) {
-    openPremiumContactModal(postId);
+  if (u.role === "guest") {
+    showToast("Guest cannot make calls. Please login.");
     return;
   }
 
   const post = window.postCache.get(postId);
+  if (!post) return showToast("Post not found ❌");
 
   const phone = post.contact;
-
-  window.location.href = `tel:${phone}`;
-}
-
+  window.open(`tel:+91${phone}`, "_blank");
+};
 </script>
 
 <script>
@@ -2382,19 +2382,23 @@ function goToPaymentForContact() {
 
 async function canAccessChatCall(postId) {
   const u = window.currentUser;
-  if (!u || u.role === "guest") return false;
+  if(!u || u.role === "guest") return false;
 
+  // 1️⃣ Admin or seller can always access
+  const post = window.postCache.get(postId);
+  if(!post) return false;
+  if(u.uid === post.ownerId || u.role === "admin") return true;
+
+  // 2️⃣ Check if order exists and is paid
   const q = query(
     collection(db, "orders"),
-    where("postId", "==", postId),
     where("buyerId", "==", u.uid),
-    where("paymentStatus", "==", "paid"),
-    where("status", "in", ["placed", "accepted", "completed"])
+    where("postId", "==", postId),
+    where("paymentStatus", "==", "paid")
   );
-
-  window.getDocs = getDocs;
+  
   const snap = await getDocs(q);
-  return !snap.empty;
+  return !snap.empty; // true if user has paid for this post
 }
 
 function listenToNotifications(){
