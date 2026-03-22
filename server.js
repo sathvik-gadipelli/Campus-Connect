@@ -27,17 +27,16 @@ app.post("/create-order", async (req, res) => {
     const options = {
       amount: amount,
       currency: "INR"
+      
     };
 
     const order = await razorpay.orders.create(options);
-
     res.json(order);
 
   } catch (err) {
     console.error("RAZORPAY ERROR:", err);
     res.status(500).send("Error creating order");
   }
-  
 });
 
 const PORT = process.env.PORT || 5000;
