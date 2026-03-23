@@ -1,7 +1,7 @@
 import { auth, provider, db } from "./firebase.js";
 import { signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
-    collection, onSnapshot, updateDoc, doc, getDoc, deleteDoc, query, orderBy 
+  collection, onSnapshot, updateDoc, doc, getDoc, deleteDoc, query, orderBy, addDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const loginBtn = document.getElementById("loginBtn");
@@ -93,6 +93,30 @@ function initAdminListeners() {
     onSnapshot(doc(db, "config", "homeAd"), d => {
         if (d.exists()) document.getElementById("adText").value = d.data().text;
     });
+
+    // 🔹 Categories Listener
+onSnapshot(collection(db, "categories"), snap => {
+  const list = document.getElementById("categoriesList");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  snap.forEach(d => {
+    const cat = d.data();
+
+    list.innerHTML += `
+      <div class="bg-gray-800 p-3 rounded flex justify-between items-center">
+        <span>${cat.name} ${cat.active ? '(Active)' : '(Inactive)'}</span>
+        <div class="flex gap-2">
+          <button onclick="toggleCategory('${d.id}', ${cat.active})" class="bg-yellow-600 px-2 py-1 rounded text-xs">
+            ${cat.active ? 'Deactivate' : 'Activate'}
+          </button>
+          <button onclick="deleteCategory('${d.id}')" class="bg-red-600 px-2 py-1 rounded text-xs">Delete</button>
+        </div>
+      </div>
+    `;
+  });
+});
 }
 
 /* ⚙️ ACTIONS */
@@ -128,31 +152,28 @@ window.blockUser = async (uid) => {
   });
 };
 
-// 🔹 Categories Listener
-onSnapshot(collection(db, "categories"), snap => {
-  const list = document.getElementById("categoriesList");
-  list.innerHTML = "";
-  snap.forEach(d => {
-    const cat = d.data();
-    list.innerHTML += `
-      <div class="bg-gray-800 p-3 rounded flex justify-between items-center">
-        <span>${cat.name} ${cat.active ? '(Active)' : '(Inactive)'}</span>
-        <div class="flex gap-2">
-          <button onclick="toggleCategory('${d.id}', ${cat.active})" class="bg-yellow-600 px-2 py-1 rounded text-xs">
-            ${cat.active ? 'Deactivate' : 'Activate'}
-          </button>
-          <button onclick="deleteCategory('${d.id}')" class="bg-red-600 px-2 py-1 rounded text-xs">Delete</button>
-        </div>
-      </div>`;
-  });
-});
 
 // Add Category
 window.addCategory = async () => {
   const name = document.getElementById("newCategoryName").value.trim();
-  if(!name) return alert("Enter category name");
-  await setDoc(doc(db, "categories", name), { name, active: true });
-  document.getElementById("newCategoryName").value = "";
+
+  if (!name) {
+    alert("Enter category name");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "categories"), {
+      name: name,
+      active: true,
+      createdAt: new Date()
+    });
+
+    document.getElementById("newCategoryName").value = "";
+
+  } catch (e) {
+    alert("Error adding category: " + e.message);
+  }
 };
 
 // Toggle Active/Inactive
@@ -199,5 +220,93 @@ window.viewAccount = async (uid) => {
   if(docSnap.exists()) {
     const u = docSnap.data();
     alert(JSON.stringify(u, null, 2));
+  }
+};
+
+/* =========================
+   👥 USERS LIST (CARDS UI)
+========================= */
+
+function loadUsers(){
+  const ref = collection(db, "users");
+
+  onSnapshot(ref, snap => {
+    const box = document.getElementById("usersList");
+    if(!box) return;
+
+    box.innerHTML = "";
+
+    snap.forEach(d => {
+      const u = d.data();
+
+      box.innerHTML += `
+        <div onclick="openUser('${d.id}')"
+          class="bg-gray-900 p-4 rounded-xl border cursor-pointer hover:scale-105 transition">
+
+          <h3 class="font-bold text-lg">${u.name || "User"}</h3>
+          <p class="text-sm opacity-70">${u.email || ""}</p>
+          <p class="text-xs">${u.mobile || ""}</p>
+
+          <span class="text-xs px-2 py-1 rounded ${
+            u.blocked ? "bg-red-500" : "bg-green-600"
+          }">
+            ${u.blocked ? "Blocked" : "Active"}
+          </span>
+        </div>
+      `;
+    });
+  });
+}
+
+/* =========================
+   👤 USER DETAILS MODAL
+========================= */
+
+window.openUser = async (uid) => {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()) return;
+
+  const u = snap.data();
+
+  document.getElementById("userDetails").innerHTML = `
+    <p><b>Name:</b> ${u.name}</p>
+    <p><b>Email:</b> ${u.email}</p>
+    <p><b>Mobile:</b> ${u.mobile}</p>
+    <p><b>Role:</b> ${u.role}</p>
+    <p><b>Status:</b> ${u.blocked ? "Blocked" : "Active"}</p>
+  `;
+
+  document.getElementById("userModal").classList.remove("hidden");
+
+  // Block
+  document.getElementById("blockBtn").onclick = async () => {
+    await updateDoc(ref, { blocked: true });
+    alert("User Blocked ❌");
+  };
+
+  // Unblock
+  document.getElementById("unblockBtn").onclick = async () => {
+    await updateDoc(ref, { blocked: false });
+    alert("User Unblocked ✅");
+  };
+};
+
+window.closeUserModal = () => {
+  document.getElementById("userModal").classList.add("hidden");
+};
+
+/* =========================
+   🔁 TAB HOOK (IMPORTANT)
+========================= */
+
+const oldSwitchTab = window.switchTab;
+
+window.switchTab = function(tabName){
+  oldSwitchTab(tabName);
+
+  if(tabName === "users"){
+    loadUsers();
   }
 };
