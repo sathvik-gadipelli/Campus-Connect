@@ -223,10 +223,10 @@ window.viewAccount = async (uid) => {
   }
 };
 
+
 /* =========================
    👥 USERS LIST (CARDS UI)
 ========================= */
-
 function loadUsers(){
   const ref = collection(db, "users");
 
@@ -258,10 +258,10 @@ function loadUsers(){
   });
 }
 
+
 /* =========================
    👤 USER DETAILS MODAL
 ========================= */
-
 window.openUser = async (uid) => {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
@@ -297,10 +297,10 @@ window.closeUserModal = () => {
   document.getElementById("userModal").classList.add("hidden");
 };
 
+
 /* =========================
    🔁 TAB HOOK (IMPORTANT)
 ========================= */
-
 const oldSwitchTab = window.switchTab;
 
 window.switchTab = function(tabName){
