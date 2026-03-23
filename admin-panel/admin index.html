@@ -103,7 +103,44 @@
           </div>
         </section>
 
+         <!-- USERS DATABASE -->
+<section id="tab-users" class="tab-content hidden space-y-4">
+  <h2 class="text-2xl font-bold">👥 User Database</h2>
+
+  <!-- USERS GRID -->
+  <div id="usersList"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  </div>
+</section> 
+
     </main>
+
+    <!-- USER DETAILS MODAL -->
+<div id="userModal"
+  class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/70">
+
+  <div class="bg-gray-900 p-6 rounded-xl w-full max-w-md space-y-4">
+
+    <h2 class="text-xl font-bold">User Details</h2>
+
+    <div id="userDetails"></div>
+
+    <div class="flex gap-2">
+      <button id="blockBtn"
+        class="flex-1 bg-red-500 p-2 rounded">Block</button>
+
+      <button id="unblockBtn"
+        class="flex-1 bg-green-600 p-2 rounded">Unblock</button>
+    </div>
+
+    <button onclick="closeUserModal()"
+      class="w-full bg-gray-700 p-2 rounded">
+      Close
+    </button>
+
+  </div>
+</div>
+
 
     <script type="module" src="./admin.js"></script>
 </body>
