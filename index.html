@@ -6,6 +6,7 @@
 <title>Campus Connect</title>
 
 <link rel="manifest" href="manifest.json">
+
 <meta name="theme-color" content="#111827">
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -403,16 +404,79 @@ img{
   display: block;
 }
 
+body {
+  padding-bottom: 70px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+#screen-home {
+  min-height: calc(100vh - 120px); /* header + bottom nav adjust */
+  display: flex;
+  flex-direction: column;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#app {
+  min-height: 100vh;
+  padding-bottom: 80px; /* space for bottom nav */
+}
+
+[id^="screen-"] {
+  min-height: calc(100vh - 80px);
+}
+
+/* 📱 ONLY MOBILE */
+@media (max-width: 640px) {
+
+  #app {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  [id^="screen-"] {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+
+}
+
+/* 💻 DESKTOP NORMAL */
+@media (min-width: 641px) {
+
+  #app {
+    height: auto;
+    overflow: visible;
+  }
+
+  [id^="screen-"] {
+    position: relative;
+    height: auto;
+  }
+
+}
+
 </style>
 
 <script src="https://unpkg.com/lucide@latest"></script>
 
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+<body class="m-0 p-0 overflow-x-hidden">
   <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<div id="appShell" class="app-shell mx-auto">
+<div id="appShell" class="w-full">
 
 <div id="splash"
  class="fixed inset-0 z-50 flex flex-col items-center justify-center
@@ -482,15 +546,13 @@ img{
 
 </div>
 
-<div class="sticky top-0 z-30 glass backdrop-blur-xl
-            p-3 shadow flex items-center gap-3">
+<div class="sticky top-0 z-30 
+            bg-gray-900 border-b border-gray-800
+            flex items-center gap-2 px-3 py-2
+            sm:gap-3 sm:px-4 sm:py-3">
 
             <!-- ☰ MOBILE SIDEBAR TOGGLE -->
-<button
-  onclick="toggleSidebar()"
-  class="navBtn lg:hidden">
-  <i data-lucide="menu" class="icon"></i>
-</button>
+
 
   <!-- LOGO -->
   <div class="font-bold text-indigo-600 text-lg whitespace-nowrap">
@@ -510,7 +572,7 @@ img{
     ❤️
   </button>
 
-  <button onclick="showScreen('notifications')" class="navBtn">
+  <button onclick="showScreen('notifications')" class="text-sm sm:text-base">
   🔔
 </button>
 
@@ -523,7 +585,7 @@ img{
 </div>
 
 
-<div id="app" class="hidden min-h-screen pb-24">
+<div id="app" class="w-full px-1 sm:px-2">
   <div id="screen-saved" class="hidden p-4 space-y-4">
   <h2 class="text-xl font-bold">❤️ Saved Items</h2>
   <div id="savedFeed" class="space-y-3"></div>
@@ -542,7 +604,7 @@ img{
         <div id="homeAd" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-xl shadow-md">
             🚀 Campus Connect – Buy • Sell • Notes • Tutors
         </div>
-        <div id="feed" class="space-y-3"></div>
+        <div id="feed" class="flex-1"></div>
     </div>
 <!-- 🔍 POST DETAILS SCREEN -->
 <div id="screen-post-details" class="hidden p-4 space-y-4">
@@ -643,9 +705,7 @@ img{
 </div>
 
 <div id="nav"
- class="hidden fixed bottom-0 left-0 right-0
-        flex items-center
-        px-4 p-3 z-40">
+ class="hidden md:block fixed bottom-0 left-0 w-full md:w-auto">
 
         <!-- ☰ TOGGLE SIDEBAR -->
 <button onclick="toggleSidebar()" class="navBtn mb-2">
@@ -670,6 +730,8 @@ img{
   <i data-lucide="plus-circle" class="icon"></i>
   <span class="nav-label text-sm font-semibold">Add Post</span>
 </button>
+
+
 
 <!-- 4️⃣ MY POSTS -->
 <button onclick="showScreen('my-posts')" class="navBtn col-span-1">
@@ -698,6 +760,7 @@ img{
 </div>
 
 </div>
+
 
 <script type="module">
 /* =========================
@@ -882,6 +945,20 @@ feed.innerHTML += `
    🔐 AUTH & USER FLOW
 ========================= */
 
+function normalizeMobile(mobile) {
+  mobile = mobile.replace(/\D/g, ""); // remove non-digits
+
+  if (mobile.startsWith("91") && mobile.length === 12) {
+    return mobile.slice(2);
+  }
+
+  if (mobile.startsWith("0") && mobile.length === 11) {
+    return mobile.slice(1);
+  }
+
+  return mobile;
+}
+
 function saveUser(user) {
   localStorage.setItem("cc_user", JSON.stringify(user));
   window.currentUser = user;   // 🔥 ADD THIS
@@ -904,49 +981,62 @@ window.currentUser = getUser();
 ========================= */
 window.googleLogin = async () => {
   try {
-    // 1️⃣ Firebase Google Auth
     const res = await signInWithPopup(auth, provider);
     const user = res.user;
 
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
+    const email = user.email;
 
-    // 2️⃣ If user document DOES NOT exist → first time Google signup
-    if (!snap.exists()) {
-      await setDoc(userRef, {
+    // 🔥 STEP 1: CHECK IF USER WITH SAME EMAIL EXISTS
+    const q = query(
+      collection(db, "users"),
+      where("email", "==", email)
+    );
+
+    const snap = await getDocs(q);
+
+    let uid;
+
+    if (!snap.empty) {
+      // ✅ EXISTING USER → LINK ACCOUNT
+      const existingDoc = snap.docs[0];
+      uid = existingDoc.id;
+
+      await setDoc(doc(db, "users", uid), {
+        googleLinked: true,
+        photo: user.photoURL || ""
+      }, { merge: true });
+
+    } else {
+      // 🆕 NEW USER
+      uid = user.uid;
+
+      await setDoc(doc(db, "users", uid), {
         name: user.displayName || "User",
-        email: user.email,
+        email: email,
         mobile: "",
-        role: "user",               // ✅ default role ONLY on first signup
+        role: "user",
+        googleLinked: true,
         createdAt: serverTimestamp()
       });
     }
 
-    // 3️⃣ Re-fetch user data (IMPORTANT)
-    const finalSnap = await getDoc(userRef);
+    // 🔥 FINAL USER FETCH
+    const finalSnap = await getDoc(doc(db, "users", uid));
     const userData = finalSnap.data();
 
-    // 4️⃣ Save to localStorage + memory (NO ROLE OVERRIDE)
-    localStorage.setItem(
-      "cc_user",
-      JSON.stringify({
-        uid: user.uid,
-        ...userData,
-        photo: user.photoURL || ""
-      })
-    );
-
-    window.currentUser = {
-      uid: user.uid,
+    const finalUser = {
+      uid,
       ...userData,
       photo: user.photoURL || ""
     };
 
-    // 5️⃣ Enter app
+    localStorage.setItem("cc_user", JSON.stringify(finalUser));
+    window.currentUser = finalUser;
+
     enterApp();
 
   } catch (err) {
-    console.error("Google Login Error:", err);
+    console.error(err);
     alert(err.message);
   }
 };
@@ -958,7 +1048,7 @@ window.googleLogin = async () => {
 window.signupUser = async () => {
   const name = signupName.value.trim();
   const email = signupEmail.value.trim();
-  const mobile = signupMobile.value.trim();
+  let mobile = normalizeMobile(signupMobile.value.trim());
   const password = signupPassword.value.trim();
 
   if (!name || !email || !mobile || !password) {
@@ -1031,9 +1121,11 @@ enterApp();
   }
 };
 
-//login user
+/* =========================
+   📝 LOGIN (Simple DB)
+========================= */
 window.loginUser = async () => {
-  const mobile = loginMobile.value.trim();
+  let mobile = normalizeMobile(loginMobile.value.trim());
   const password = loginPassword.value.trim();
 
   if (!mobile || !password) {
@@ -1067,6 +1159,12 @@ window.loginUser = async () => {
   uid: cred.user.uid,
   ...userDoc.data()
 };
+
+if (finalUser.blocked) {
+  alert("Your account is blocked");
+  await signOut(auth);
+  return;
+}
 
 localStorage.setItem("cc_user", JSON.stringify(finalUser));
 window.currentUser = finalUser;   // 🔥 THIS LINE WAS MISSING
@@ -1113,6 +1211,7 @@ if (navEl) {
   loadUser();
 
   listenToFeed();
+  listenToCategories();  // or real-time below
 
  if (u.role !== "guest") {
   listenToSaved(u.uid);
@@ -1210,33 +1309,18 @@ if(splash) splash.classList.add("hidden");
 function showScreen(n){
   window.currentView = n;
 
-  const screens = [
-    "home","categories","post-details",
-    "my-posts","orders","saved","seller-orders",
-    "profile","settings"
-];
-
-  screens.forEach(s=>{
-    const el = document.getElementById("screen-"+s);
-    if(el) el.classList.add("hidden");
+  // hide ALL
+  document.querySelectorAll('[id^="screen-"]').forEach(el=>{
+    el.style.display = "none";
   });
 
+  // show ONLY one
   const target = document.getElementById("screen-"+n);
-  if(target) target.classList.remove("hidden");
-
-    if(n === "categories"){
-    // refresh categories UI automatically
+  if(target){
+    target.style.display = "block";
+    target.scrollTop = 0; // reset scroll
   }
-
-  if(n === "categories"){
-  loadCategories(); // 🔥 ADD THIS
 }
-    if(n === "orders") listenToMyOrders();
-  if(n === "seller-orders") listenToSellerOrders();
-
-    
-}
-
 window.showSaved = () => {
   window.currentView = "saved";
   showScreen("saved");
@@ -1249,10 +1333,7 @@ window.showSaved = () => {
   window.renderFeed = function () {
   const feed = document.getElementById("feed");
 feed.className = `
-  grid gap-4
-  grid-cols-1
-  sm:grid-cols-2
-  lg:grid-cols-3
+grid grid-cols-2 gap-2
 `;
   const searchBox = document.getElementById("searchInput");
   const q = searchBox ? searchBox.value.trim().toLowerCase() : "";
@@ -1286,9 +1367,9 @@ const thumb = (p.images && p.images.length)
 
 feed.innerHTML += `
 <div onclick="openPostDetails('${p.id}')"
-  class="glass card-hover rounded-3xl overflow-hidden">
+  class="glass card-hover rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all">
 
-  <div class="relative h-44 bg-black flex items-center justify-center">
+  <div class="relative h-40 sm:h-44 bg-black flex items-center justify-center">
     <img src="${thumb}"
       class="max-h-full object-contain p-3">
 
@@ -1303,7 +1384,7 @@ feed.innerHTML += `
     </button>
   </div>
 
-  <div class="p-4 space-y-1">
+  <div class="p-3 sm:p-4 space-y-1">
     <h3 class="font-bold truncate">${p.title}</h3>
     <p class="text-orange-400 font-bold">₹${p.price}</p>
     <p class="text-xs opacity-60 line-clamp-2">${p.description || ""}</p>
@@ -1345,7 +1426,7 @@ window.openPostDetails = async (postId) => {
 
   // Inject post details
   box.innerHTML = `
-    <h2 class="text-2xl font-bold">${post.title}</h2>
+    <h2 class="text-xl sm:text-2xl font-bold">${post.title}</h2>
     <p class="text-sm opacity-80">${post.description || ""}</p>
     ${imagesHtml}
     <hr class="opacity-30 my-2">
@@ -1362,7 +1443,7 @@ window.openPostDetails = async (postId) => {
       <p>Name: ${post.ownerName || "User"}</p>
     </div>
 
-    <div class="flex gap-2 mt-4">
+    <div class="flex flex-col sm:flex-row gap-2 mt-4">
       <button id="chatBtn"
         class="flex-1 p-3 rounded-xl bg-indigo-600 text-white font-bold"
         onclick="handleChat('${postId}')">
@@ -2130,7 +2211,6 @@ window.showToast = (msg) => {
 };
 
 
-
 onSnapshot(
   query(collection(db, "orders"), where("status", "==", "completed")),
   snap => {
@@ -2453,14 +2533,21 @@ async function loadCategories(){
   const snap = await getDocs(collection(db, "categories"));
   renderCategories(snap);
 }
+
+function listenToCategories(){
+  const ref = collection(db, "categories");
+
+  onSnapshot(ref, snap => {
+    renderCategories(snap);
+  });
+}
 </script>
 
 <script>
   lucide.createIcons();
 </script>
 
-
- <!-- 🔍 FULL IMAGE VIEWER -->
+<!-- 🔍 FULL IMAGE VIEWER -->
 <div id="imageViewer"
   class="fixed inset-0 hidden z-[999] bg-black/90 flex items-center justify-center">
 
@@ -2473,7 +2560,7 @@ async function loadCategories(){
     class="max-w-[95vw] max-h-[90vh] object-contain rounded-xl">
 </div>
 
- <!-- 🔥 MOBILE FLOATING ADD BUTTON -->
+<!-- 🔥 MOBILE FLOATING ADD BUTTON -->
 <button onclick="addPost()"
  class="md:hidden fixed bottom-24 left-1/2 -translate-x-1/2
         bg-gradient-to-br from-indigo-500 to-purple-600
@@ -2525,9 +2612,42 @@ async function loadCategories(){
               class="text-gray-400 hover:text-gray-200 text-sm underline mt-2">
         Maybe later
       </button>
-        
+
     </div>
   </div>
+</div>
+
+<div id="bottomNav"
+ class="fixed bottom-0 left-0 w-full h-[60px]
+        bg-gray-900 border-t border-gray-800
+        flex justify-around items-center z-50
+        md:hidden">
+
+  <button onclick="goHome()" class="navBtn flex flex-col items-center text-xs">
+    🏠
+    <span>Home</span>
+  </button>
+
+  <button onclick="showScreen('categories')" class="navBtn flex flex-col items-center text-xs">
+    📦
+    <span>Categories</span>
+  </button>
+
+  <button onclick="addPost()" class="navBtn flex flex-col items-center text-xs text-orange-500">
+    ➕
+    <span>Sell</span>
+  </button>
+
+  <button onclick="showScreen('orders')" class="navBtn flex flex-col items-center text-xs">
+    📑
+    <span>Orders</span>
+  </button>
+
+  <button onclick="showScreen('profile')" class="navBtn flex flex-col items-center text-xs">
+    👤
+    <span>Profile</span>
+  </button>
+
 </div>
 
 <script>
