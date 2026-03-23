@@ -561,20 +561,7 @@ img{
 
     <div id="screen-categories" class="hidden p-4 space-y-3">
         <h2 class="font-bold text-xl mb-4">Categories</h2>
-        <div class="grid grid-cols-2 gap-3">
-  <button onclick="filterCategory('Books')" class="flex items-center gap-2 p-3 bg-indigo-600 text-white rounded-xl shadow hover:scale-105 transition">
-    📚 Books
-  </button>
-  <button onclick="filterCategory('Notes')" class="flex items-center gap-2 p-3 bg-purple-600 text-white rounded-xl shadow hover:scale-105 transition">
-    📝 Notes
-  </button>
-  <button onclick="filterCategory('Gadgets')" class="flex items-center gap-2 p-3 bg-green-600 text-white rounded-xl shadow hover:scale-105 transition">
-    💻 Gadgets
-  </button>
-  <button onclick="filterCategory('Tutors')" class="flex items-center gap-2 p-3 bg-yellow-500 text-white rounded-xl shadow hover:scale-105 transition">
-    🧑‍🏫 Tutors
-  </button>
-</div>
+        <div id="categoriesGrid" class="grid grid-cols-2 gap-3"></div>
     </div>
 
     <div id="screen-orders" class="hidden p-4 space-y-4">
@@ -1241,6 +1228,13 @@ function showScreen(n){
   const target = document.getElementById("screen-"+n);
   if(target) target.classList.remove("hidden");
 
+    if(n === "categories"){
+    // refresh categories UI automatically
+  }
+
+  if(n === "categories"){
+  loadCategories(); // 🔥 ADD THIS
+}
     if(n === "orders") listenToMyOrders();
   if(n === "seller-orders") listenToSellerOrders();
 
@@ -2426,6 +2420,42 @@ function listenToNotifications(){
       `;
     });
   });
+}
+
+onSnapshot(collection(db, "categories"), snap => {
+  renderCategories(snap);
+});
+
+function renderCategories(snapshot){
+  const grid = document.getElementById("categoriesGrid");
+  if(!grid) return;
+
+  grid.innerHTML = "";
+
+  if(snapshot.empty){
+    grid.innerHTML = "<p class='opacity-50'>No categories</p>";
+    return;
+  }
+
+  snapshot.forEach(docSnap => {
+    const cat = docSnap.data();
+
+    if(!cat.active) return;
+
+    const name = cat.name;
+
+    grid.innerHTML += `
+      <button onclick="filterCategory('${name}')"
+        class="flex items-center gap-2 p-3 bg-indigo-600 text-white rounded-xl shadow hover:scale-105 transition">
+        📦 ${name}
+      </button>
+    `;
+  });
+}
+
+async function loadCategories(){
+  const snap = await getDocs(collection(db, "categories"));
+  renderCategories(snap);
 }
 </script>
 
