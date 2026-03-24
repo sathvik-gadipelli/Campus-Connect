@@ -173,10 +173,10 @@ html:not(.dark) .icon{
   }
 }
 
- /* Desktop → Floating Glass Sidebar */
- /* DESKTOP FLOATING SIDEBAR */
- /* Desktop Floating Sidebar */
- /* ===== DESKTOP SIDEBAR COLLAPSE/EXPAND ===== */
+/* Desktop → Floating Glass Sidebar */
+/* DESKTOP FLOATING SIDEBAR */
+/* Desktop Floating Sidebar */
+/* ===== DESKTOP SIDEBAR COLLAPSE/EXPAND ===== */
 
   #nav {
     position: fixed;
@@ -253,7 +253,9 @@ html:not(.dark) .icon{
     text-align: center;
   }
 
-    
+
+
+
 button:active{
   transform:scale(.96);
 }
@@ -465,6 +467,83 @@ html, body {
 
 }
 
+.navBtn {
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+.navBtn:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+/* 🔥 ONLY MOBILE FIX */
+@media (max-width: 768px){
+
+  /* header kinda gap remove */
+  #screen-home{
+    padding-top: 8px !important;
+  }
+
+  /* first section spacing tight */
+  #homeAd{
+    margin-top: 0 !important;
+  }
+
+  #app{
+  margin-top: -4px;
+}
+}
+
+/* 🔥 Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 🔥 Screen fade animation */
+.screen {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 🔥 Card hover effect */
+.card-hover {
+  transition: all 0.25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+/* 🔥 Button press effect */
+button:active {
+  transform: scale(0.95);
+}
+
+/* 🔥 Bottom nav animation */
+#bottomNav button {
+  transition: all 0.2s ease;
+}
+#bottomNav button:active {
+  transform: scale(0.85);
+}
+
+/* 🔥 Floating effect */
+.floating {
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
 </style>
 
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -545,61 +624,61 @@ html, body {
 </div>
 
 <div class="sticky top-0 z-30 
-            bg-gray-900 border-b border-gray-800
+            bg-gray-900/80 backdrop-blur-lg
+            border-b border-gray-800
             flex items-center gap-2 px-3 py-2
-            sm:gap-3 sm:px-4 sm:py-3">
-
-            <!-- ☰ MOBILE SIDEBAR TOGGLE -->
-
+            sm:gap-3 sm:px-4 sm:py-3
+            h-[56px] md:h-auto">
 
   <!-- LOGO -->
-  <div class="font-bold text-indigo-600 text-lg whitespace-nowrap">
+  <div class="font-extrabold text-indigo-500 text-lg whitespace-nowrap tracking-wide">
     CampusConnect
   </div>
 
   <!-- SEARCH -->
-  <input id="searchInput"
-    oninput="renderFeed()"
-    placeholder="Search items, notes, tutors..."
-    class="flex-1 p-2 rounded border dark:bg-gray-700
-           dark:text-white outline-none
-           focus:ring-2 focus:ring-indigo-500">
+  <div class="flex-1 relative">
+    <input id="searchInput"
+      oninput="renderFeed()"
+      placeholder="Search items, notes, tutors..."
+      class="w-full p-2 pl-10 rounded-full border border-gray-700
+             bg-gray-800/70 text-white
+             outline-none focus:ring-2 focus:ring-indigo-500">
 
-  <!-- SAVED -->
-  <button onclick="showSaved()" class="navBtn">
-    ❤️
-  </button>
+    <!-- 🔍 ICON -->
+    <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+  </div>
 
-  <button onclick="showScreen('notifications')" class="text-sm sm:text-base">
-  🔔
-</button>
+  <!-- SAVED (desktop only) -->
+  <button onclick="showSaved()" class="navBtn hidden md:block">❤️</button>
 
-  <!-- PROFILE -->
-  <button onclick="showScreen('profile')" class="navBtn">
+  <!-- NOTIFICATIONS (desktop only) -->
+  <button onclick="showScreen('notifications')" class="hidden md:block">🔔</button>
+
+  <!-- PROFILE (desktop only) -->
+  <button onclick="showScreen('profile')" class="navBtn hidden md:flex">
     <i data-lucide="user" class="icon"></i>
-    <span class="nav-label text-sm">profile</span>
   </button>
 
 </div>
 
 
-<div id="app" class="w-full px-1 sm:px-2">
-  <div id="screen-saved" class="hidden p-4 space-y-4">
+<div id="app" class="w-full px-1 sm:px-2 mt-[56px] md:mt-0">
+  <div id="screen-saved" class="screen p-4 space-y-4">
   <h2 class="text-xl font-bold">❤️ Saved Items</h2>
   <div id="savedFeed" class="space-y-3"></div>
 </div>
-<div id="screen-notifications" class="hidden p-4 space-y-3">
+<div id="screen-notifications" class="screen p-4 space-y-4">
   <h2 class="text-xl font-bold">🔔 Notifications</h2>
   <div id="notificationFeed"></div>
   </div>
 
-<div id="screen-my-posts" class="hidden p-4 space-y-4">
+<div id="screen-my-posts" class="screen p-4 space-y-4">
   <h2 class="text-xl font-bold">📦 My Posts</h2>
   <div id="myPostsFeed" class="space-y-3"></div>
 </div>
 
-    <div id="screen-home" class="p-4 space-y-4">
-        <div id="homeAd" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-xl shadow-md">
+    <div id="screen-home" class="screen p-4 space-y-4">
+        <div id="homeAd" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-xl shadow-md mt-0">
             🚀 Campus Connect – Buy • Sell • Notes • Tutors
         </div>
         <div id="feed" class="flex-1"></div>
@@ -618,12 +697,12 @@ html, body {
 
 </div>
 
-    <div id="screen-categories" class="hidden p-4 space-y-3">
+    <div id="screen-categories" class="screen p-4 space-y-4">
         <h2 class="font-bold text-xl mb-4">Categories</h2>
         <div id="categoriesGrid" class="grid grid-cols-2 gap-3"></div>
     </div>
 
-    <div id="screen-orders" class="hidden p-4 space-y-4">
+    <div id="screen-orders" class="screen p-4 space-y-4">
         <div class="flex items-center justify-between">
   <h2 class="text-xl font-bold">📦 My Orders</h2>
 
@@ -647,7 +726,7 @@ html, body {
   </div>
 </div>
 
-    <div id="screen-profile" class="hidden p-4 space-y-6">
+    <div id="screen-profile" class="screen p-4 space-y-4">
         <div id="userInfo" class="flex gap-3 items-center"></div>
         
         <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
@@ -658,9 +737,32 @@ html, body {
         </div>
 
         <div class="space-y-2">
-            <button onclick="showScreen('settings')" class="btn">⚙️ Settings</button>
-            <button onclick="logout()" class="bg-red-500 text-white p-2 rounded w-full font-bold">Logout</button>
-        </div>
+
+  <!-- MOBILE ONLY OPTIONS -->
+  <div class="md:hidden space-y-2">
+
+    <button onclick="showSaved()" class="btn w-full">
+      ❤️ Saved Items
+    </button>
+
+    <button onclick="showScreen('notifications')" class="btn w-full">
+      🔔 Notifications
+    </button>
+
+    <button onclick="showScreen('my-posts')" class="btn w-full">
+      📦 My Posts
+    </button>
+
+  </div>
+
+  <!-- COMMON OPTIONS -->
+  <button onclick="showScreen('settings')" class="btn">⚙️ Settings</button>
+
+  <button onclick="logout()" class="bg-red-500 text-white p-2 rounded w-full font-bold">
+    Logout
+  </button>
+
+</div>
     </div>
 
     <div id="screen-settings" class="hidden p-4 space-y-3">
@@ -800,6 +902,9 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import { increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+window.increment = increment;
 window.getDocs = getDocs;
 
 /* =========================
@@ -1083,13 +1188,27 @@ window.signupUser = async () => {
     const uid = cred.user.uid;
 
     /* 🧾 3️⃣ SAVE USER IN FIRESTORE */
-    const userData = {
-      name: name,
-      email: email,
-      mobile: mobile,
-      role: "user",
-      createdAt: serverTimestamp()
-    };
+    function getDevice() {
+  const ua = navigator.userAgent;
+
+  if (/android/i.test(ua)) return "Android";
+  if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+  return "Desktop";
+}
+
+const userData = {
+  name: name,
+  email: email,
+  mobile: mobile,
+  role: "user",
+
+  device: getDevice(),          // 🔥 NEW
+  createdAt: serverTimestamp(),
+  lastLogin: serverTimestamp(), // 🔥 NEW
+
+  totalOrders: 0,
+  totalPaid: 0
+};
 
     await setDoc(doc(db, "users", uid), userData);
 
@@ -1166,6 +1285,9 @@ if (finalUser.blocked) {
 
 localStorage.setItem("cc_user", JSON.stringify(finalUser));
 window.currentUser = finalUser;   // 🔥 THIS LINE WAS MISSING
+await setDoc(doc(db, "users", finalUser.uid), {
+  lastLogin: serverTimestamp()
+}, { merge: true });
 
 enterApp();
 
@@ -1283,9 +1405,22 @@ async function sendNotification(userId, text) {
 ========================= */
 
 window.addEventListener("load", () => {
+  // 🔥 TRACK INSTALL / OPEN
+try {
+  if (window.db && window.doc && window.setDoc && window.increment) {
+    const installRef = window.doc(window.db, "stats", "app");
+
+    window.setDoc(installRef, {
+      installs: window.increment(1)
+    }, { merge: true });
+  }
+} catch(e) {
+  console.log("Stats error ignored", e);
+}
+
   setTimeout(() => {
-    const splash = document.getElementById("splash");
-if(splash) splash.classList.add("hidden");
+  const splash = document.getElementById("splash");
+  if(splash) splash.style.display = "none"; // stronger than hidden
 
 
     const user = localStorage.getItem("cc_user");
@@ -1365,9 +1500,13 @@ const thumb = (p.images && p.images.length)
 
 feed.innerHTML += `
 <div onclick="openPostDetails('${p.id}')"
-  class="glass card-hover rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all">
+  class="rounded-2xl overflow-hidden 
+       bg-gradient-to-b from-gray-800 to-gray-900
+       border border-gray-700
+       shadow-md hover:shadow-2xl 
+       transition-all duration-300 hover:scale-[1.02]">
 
-  <div class="relative h-40 sm:h-44 bg-black flex items-center justify-center">
+  <div class="relative h-44 bg-black/80 flex items-center justify-center">
     <img src="${thumb}"
       class="max-h-full object-contain p-3">
 
@@ -1383,8 +1522,8 @@ feed.innerHTML += `
   </div>
 
   <div class="p-3 sm:p-4 space-y-1">
-    <h3 class="font-bold truncate">${p.title}</h3>
-    <p class="text-orange-400 font-bold">₹${p.price}</p>
+    <h3 class="font-semibold text-sm truncate text-white">${p.title}</h3>
+    <p class="text-indigo-400 font-extrabold text-lg">₹${p.price}</p>
     <p class="text-xs opacity-60 line-clamp-2">${p.description || ""}</p>
   </div>
 </div>
@@ -1594,6 +1733,12 @@ async function placeOrder(postId) {
       },
       { merge: true }
     );
+
+    // 🔥 UPDATE USER STATS
+await setDoc(doc(db, "users", u.uid), {
+  totalOrders: increment(1),
+  totalPaid: increment(post.price)
+}, { merge: true });
 
     showToast("Order placed 🎉");
   
@@ -2209,6 +2354,7 @@ window.showToast = (msg) => {
 };
 
 
+
 onSnapshot(
   query(collection(db, "orders"), where("status", "==", "completed")),
   snap => {
@@ -2545,6 +2691,7 @@ function listenToCategories(){
   lucide.createIcons();
 </script>
 
+
 <!-- 🔍 FULL IMAGE VIEWER -->
 <div id="imageViewer"
   class="fixed inset-0 hidden z-[999] bg-black/90 flex items-center justify-center">
@@ -2616,8 +2763,10 @@ function listenToCategories(){
 </div>
 
 <div id="bottomNav"
- class="fixed bottom-0 left-0 w-full h-[60px]
-        bg-gray-900 border-t border-gray-800
+ class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[92%] h-[65px]
+        bg-gray-900/80 backdrop-blur-lg
+        border border-gray-800
+        rounded-2xl shadow-2xl
         flex justify-around items-center z-50
         md:hidden">
 
