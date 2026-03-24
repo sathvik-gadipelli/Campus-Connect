@@ -62,7 +62,9 @@ function initAdminListeners() {
                 </div>
             </div>`;
         });
+      
         document.getElementById("stat-posts").innerText = activeCount;
+      
     });
 
     // 📦 Orders Listener
