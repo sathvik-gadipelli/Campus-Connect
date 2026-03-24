@@ -3,6 +3,7 @@ import { signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/fireb
 import { 
   collection, onSnapshot, updateDoc, doc, getDoc, deleteDoc, query, orderBy, addDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const loginBtn = document.getElementById("loginBtn");
 const dashboard = document.getElementById("dashboard");
@@ -117,6 +118,19 @@ onSnapshot(collection(db, "categories"), snap => {
     `;
   });
 });
+
+// 📲 Install Tracking
+onSnapshot(doc(db, "stats", "app"), d => {
+  if (d.exists()) {
+    document.getElementById("stat-installs").innerText =
+      d.data().installs || 0;
+  }
+});
+
+onSnapshot(collection(db, "users"), snap => {
+  document.getElementById("stat-users").innerText = snap.size;
+});
+
 }
 
 /* ⚙️ ACTIONS */
@@ -223,10 +237,10 @@ window.viewAccount = async (uid) => {
   }
 };
 
-
 /* =========================
    👥 USERS LIST (CARDS UI)
 ========================= */
+
 function loadUsers(){
   const ref = collection(db, "users");
 
@@ -258,10 +272,10 @@ function loadUsers(){
   });
 }
 
-
 /* =========================
    👤 USER DETAILS MODAL
 ========================= */
+
 window.openUser = async (uid) => {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
@@ -270,26 +284,54 @@ window.openUser = async (uid) => {
 
   const u = snap.data();
 
+  // 🔥 FETCH USER ORDERS
+  const ordersSnap = await getDocs(
+    query(collection(db, "orders"), where("buyerId", "==", uid))
+  );
+
+  let totalOrders = 0;
+  let successOrders = 0;
+  let failedOrders = 0;
+
+  ordersSnap.forEach(d => {
+    totalOrders++;
+
+    const o = d.data();
+    if(o.status === "completed") successOrders++;
+    if(o.status === "rejected") failedOrders++;
+  });
+
   document.getElementById("userDetails").innerHTML = `
     <p><b>Name:</b> ${u.name}</p>
     <p><b>Email:</b> ${u.email}</p>
     <p><b>Mobile:</b> ${u.mobile}</p>
-    <p><b>Role:</b> ${u.role}</p>
-    <p><b>Status:</b> ${u.blocked ? "Blocked" : "Active"}</p>
+    <p><b>Device:</b> ${u.device || "Unknown"}</p>
+
+    <hr class="my-2">
+
+    <p><b>Joined:</b> ${u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000).toLocaleString() : ""}</p>
+    <p><b>Last Login:</b> ${u.lastLogin?.seconds ? new Date(u.lastLogin.seconds * 1000).toLocaleString() : ""}</p>
+
+    <hr class="my-2">
+
+    <p><b>Total Orders:</b> ${totalOrders}</p>
+    <p><b>Success Orders:</b> ${successOrders}</p>
+    <p><b>Failed Orders:</b> ${failedOrders}</p>
+
+    <hr class="my-2">
+
+    <p><b>Total Paid:</b> ₹${u.totalPaid || 0}</p>
+    <p><b>Status:</b> ${u.blocked ? "Blocked ❌" : "Active ✅"}</p>
   `;
 
   document.getElementById("userModal").classList.remove("hidden");
 
-  // Block
   document.getElementById("blockBtn").onclick = async () => {
     await updateDoc(ref, { blocked: true });
-    alert("User Blocked ❌");
   };
 
-  // Unblock
   document.getElementById("unblockBtn").onclick = async () => {
     await updateDoc(ref, { blocked: false });
-    alert("User Unblocked ✅");
   };
 };
 
@@ -297,10 +339,10 @@ window.closeUserModal = () => {
   document.getElementById("userModal").classList.add("hidden");
 };
 
-
 /* =========================
    🔁 TAB HOOK (IMPORTANT)
 ========================= */
+
 const oldSwitchTab = window.switchTab;
 
 window.switchTab = function(tabName){
@@ -310,3 +352,4 @@ window.switchTab = function(tabName){
     loadUsers();
   }
 };
+
