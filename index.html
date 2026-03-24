@@ -317,12 +317,12 @@ img{
   box-shadow: 0 20px 50px rgba(99,102,241,.8);
 }
 
+    
 /* ================================
    🔥 FORCE SIDEBAR FOR MOBILE ALSO
 ================================ */
 
 /* MOBILE + TABLET SAME AS DESKTOP */
-
 #nav {
   position: fixed;
   top: 90px;
@@ -340,10 +340,10 @@ img{
   transition: width 0.35s ease;
 }
 
+    
 /* ================================
    ✅ MOBILE OVERLAY SIDEBAR (FINAL)
 ================================ */
-
 @media (max-width: 1024px){
   #nav{
     position: fixed;
@@ -880,7 +880,6 @@ body{
 /* =========================
    🔥 FIREBASE CORE SETUP
 ========================= */
-
 import {
   getStorage,
   ref,
@@ -1061,7 +1060,6 @@ feed.innerHTML += `
 /* =========================
    🔐 AUTH & USER FLOW
 ========================= */
-
 function normalizeMobile(mobile) {
   mobile = mobile.replace(/\D/g, ""); // remove non-digits
 
